@@ -3,14 +3,14 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timedelta, timezone
 
-from arbiter.data.providers.finnhub_market_provider import FinnhubMarketProvider
+from arbiter.data.providers.yahoo_market_provider import YahooMarketProvider
 from arbiter.data.repositories.db import get_session
 from arbiter.data.repositories.market_repository import MarketRepository
 from arbiter.data.repositories.refresh_state_repository import RefreshStateRepository
 
 
 DATASET_TYPE = "market_bars"
-SOURCE = "finnhub"
+SOURCE = "yahoo"
 
 
 def _dataset_key(symbol: str, timeframe: str) -> str:
@@ -18,7 +18,7 @@ def _dataset_key(symbol: str, timeframe: str) -> str:
 
 
 def bootstrap_market_data(symbol: str, timeframe: str) -> None:
-    provider = FinnhubMarketProvider()
+    provider = YahooMarketProvider()
     # 简单起见：初始化拉最近 30 天
     end = datetime.now(tz=timezone.utc)
     start = end - timedelta(days=30)
@@ -45,7 +45,7 @@ def bootstrap_market_data(symbol: str, timeframe: str) -> None:
 
 
 def refresh_market_data(symbol: str, timeframe: str) -> None:
-    provider = FinnhubMarketProvider()
+    provider = YahooMarketProvider()
 
     with get_session() as session:
         market_repo = MarketRepository(session)
