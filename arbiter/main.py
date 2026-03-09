@@ -13,7 +13,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from arbiter.data.market_service import MarketService
-from arbiter.data.ingestion.market_refresh import refresh_market_data
+from arbiter.data.ingestion.market_refresh import (
+    get_refresh_state,
+    refresh_market_data,
+)
 from arbiter.data.providers.stub_market_provider import StubMarketDataProvider
 from arbiter.data.storage.market_store import MarketStore
 
@@ -29,7 +32,7 @@ def main() -> None:
     symbol = "DEMO"
     timeframe = "1m"
 
-    print(f"[arbiter demo] refreshing market data for {symbol} ({timeframe})...")
+    print(f"[arbiter demo] first refresh for {symbol} ({timeframe})...")
     inserted = refresh_market_data(
         symbol=symbol,
         timeframe=timeframe,
@@ -37,7 +40,17 @@ def main() -> None:
         store=store,
         limit=10,
     )
-    print(f"[arbiter demo] appended {inserted} new bars.")
+    print(f"[arbiter demo] first refresh appended {inserted} new bars.")
+
+    print(f"[arbiter demo] second refresh for {symbol} ({timeframe})...")
+    inserted_again = refresh_market_data(
+        symbol=symbol,
+        timeframe=timeframe,
+        provider=provider,
+        store=store,
+        limit=10,
+    )
+    print(f"[arbiter demo] second refresh appended {inserted_again} new bars.")
 
     # 使用一个较宽的时间窗口从本地存储中查询结果
     start = datetime(1970, 1, 1, tzinfo=timezone.utc)
@@ -56,6 +69,17 @@ def main() -> None:
         )
 
     print(f"[arbiter demo] done. total bars: {len(stored)} (db: {db_path})")
+
+    # 打印 refresh state 以展示当前 checkpoint
+    state = get_refresh_state(symbol=symbol, timeframe=timeframe, store=store)
+    if state is not None:
+        print(
+            "[arbiter demo] refresh state -> "
+            f"last_bar_timestamp={state.last_bar_timestamp.isoformat()}, "
+            f"last_refresh_at={state.last_refresh_at.isoformat()}, "
+            f"total_rows={state.total_rows}, "
+            f"source={state.source}"
+        )
 
 
 if __name__ == "__main__":
