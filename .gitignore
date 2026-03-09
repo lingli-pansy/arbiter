@@ -1,3 +1,6 @@
 *.pyc
 .env
 arbiter.egg-info/*
+arbiter/data/repositories/__pycache__/*
+logs/*
+
