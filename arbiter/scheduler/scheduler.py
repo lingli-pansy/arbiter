@@ -25,7 +25,7 @@ def start_scheduler() -> BackgroundScheduler:
     scheduler.add_job(
         run_market_refresh_job,
         "interval",
-        minutes=30,
+        minutes=10,
         id="market_refresh_job",
         replace_existing=True,
     )
@@ -33,7 +33,7 @@ def start_scheduler() -> BackgroundScheduler:
     scheduler.add_job(
         run_news_refresh_job,
         "interval",
-        minutes=10,
+        minutes=20,
         id="news_refresh_job",
         replace_existing=True,
     )

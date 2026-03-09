@@ -21,6 +21,19 @@ def show_refresh_state() -> None:
             )
 
 
+def get_refresh_state(
+    dataset_type: str,
+    dataset_key: str,
+):
+    """Return refresh_state rows for given dataset_type and dataset_key."""
+    with get_session() as session:
+        stmt = select(RefreshStateORM).where(
+            RefreshStateORM.dataset_type == dataset_type,
+            RefreshStateORM.dataset_key == dataset_key,
+        )
+        return session.execute(stmt).scalars().all()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Show refresh_state records.")
     subparsers = parser.add_subparsers(dest="command", required=True)
