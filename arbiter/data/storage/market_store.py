@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 import sqlite3
@@ -41,8 +40,12 @@ class MarketStore:
                 """
             )
 
-    def write_bars(self, bars: Iterable[MarketBar]) -> None:
-        """将一组 `MarketBar` 写入本地存储。"""
+    def write_bars(self, bars: Iterable[MarketBar]) -> int:
+        """将一组 `MarketBar` 写入本地存储。
+
+        已存在的记录会被自动忽略（按 symbol/timeframe/timestamp 去重）。
+        返回实际插入的记录数。
+        """
         records = [
             (
                 b.symbol,
@@ -58,12 +61,13 @@ class MarketStore:
             for b in bars
         ]
         if not records:
-            return
+            return 0
 
         with self._get_conn() as conn:
+            before = conn.total_changes
             conn.executemany(
                 """
-                INSERT OR REPLACE INTO market_bars (
+                INSERT OR IGNORE INTO market_bars (
                     symbol, timestamp, timeframe,
                     open, high, low, close,
                     volume, source
@@ -72,6 +76,16 @@ class MarketStore:
                 """,
                 records,
             )
+            after = conn.total_changes
+
+        return after - before
+
+    def append_bars(self, bars: Iterable[MarketBar]) -> int:
+        """仅追加新 `MarketBar`，跳过已存在记录。
+
+        语义上等同于 `write_bars`，单独暴露便于调用方表达“append 模式”。
+        """
+        return self.write_bars(bars)
 
     def read_bars(
         self,
