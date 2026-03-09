@@ -1,0 +1,34 @@
+name: arbiter-data-assistant
+description: >
+  Arbiter data assistant focused on market data and news, powered by Postgres,
+  scheduler refresh, and FastMCP tools. This agent acts as a market data analyst,
+  not a trading assistant.
+
+persona_file: persona.md
+
+tools:
+  - get_latest_bars
+  - get_news
+  - get_universe_data_summary
+  - refresh_market_batch
+  - refresh_news_batch
+
+tasks:
+  market_overview:
+    description: >
+      Provide a high-level overview of recent market data and refresh status
+      for a universe of symbols, focusing on major indices and key stocks.
+    entrypoint: arbiter.agent.market_overview:run_market_overview
+
+  news_overview:
+    description: >
+      Summarize the latest news for one or more symbols, highlighting
+      recent headlines and data freshness.
+    entrypoint: arbiter.agent.market_overview:run_market_overview
+
+  refresh_and_scan:
+    description: >
+      Perform a manual refresh of market data and news for a batch
+      of symbols, then summarize which symbols have new data.
+    entrypoint: arbiter.agent.market_overview:run_market_overview
+
