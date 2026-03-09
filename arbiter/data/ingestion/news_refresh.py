@@ -17,7 +17,7 @@ def _dataset_key(symbol: str) -> str:
     return symbol
 
 
-def bootstrap_news(symbol: str) -> None:
+def bootstrap_news(symbol: str) -> int:
     provider = FinnhubNewsProvider()
     today = date.today()
     start = today - timedelta(days=30)
@@ -42,9 +42,10 @@ def bootstrap_news(symbol: str) -> None:
         )
 
         print(f"[bootstrap_news] inserted={inserted}, last_event_timestamp={last_event_ts}")
+        return inserted
 
 
-def refresh_news(symbol: str) -> None:
+def refresh_news(symbol: str) -> int:
     provider = FinnhubNewsProvider()
 
     with get_session() as session:
@@ -63,7 +64,8 @@ def refresh_news(symbol: str) -> None:
 
         events = provider.fetch_company_news(symbol=symbol, start=start, end=end)
         inserted = news_repo.append_events(events)
-        last_event_ts = max((e.timestamp for e in events), default=state.last_event_timestamp)
+        baseline_ts = state.last_event_timestamp if state is not None else None
+        last_event_ts = max((e.timestamp for e in events), default=baseline_ts)
 
         state_repo.upsert_state(
             dataset_type=DATASET_TYPE,
@@ -76,6 +78,7 @@ def refresh_news(symbol: str) -> None:
         )
 
         print(f"[refresh_news] inserted={inserted}, last_event_timestamp={last_event_ts}")
+        return inserted
 
 
 def main() -> None:

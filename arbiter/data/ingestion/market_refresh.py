@@ -28,9 +28,11 @@ def bootstrap_market_data(symbol: str, timeframe: str) -> None:
         state_repo = RefreshStateRepository(session)
 
         bars = provider.fetch_bars(symbol=symbol, timeframe=timeframe, start=start, end=end)
+        bars_fetched = len(bars)
         inserted = market_repo.append_bars(bars)
 
-        last_event_ts = max((b.timestamp for b in bars), default=None)
+        baseline_ts = None
+        last_event_ts = max((b.timestamp for b in bars), default=baseline_ts)
         state_repo.upsert_state(
             dataset_type=DATASET_TYPE,
             dataset_key=_dataset_key(symbol, timeframe),
@@ -41,10 +43,11 @@ def bootstrap_market_data(symbol: str, timeframe: str) -> None:
             error_message=None,
         )
 
-        print(f"[bootstrap_market_data] inserted={inserted}, last_event_timestamp={last_event_ts}")
+        print(f"[bootstrap_market_data] fetched={bars_fetched} inserted={inserted}, last_event_timestamp={last_event_ts}")
+        return bars_fetched, inserted
 
 
-def refresh_market_data(symbol: str, timeframe: str) -> None:
+def refresh_market_data(symbol: str, timeframe: str) -> tuple[int, int]:
     provider = YahooMarketProvider()
 
     with get_session() as session:
@@ -63,8 +66,10 @@ def refresh_market_data(symbol: str, timeframe: str) -> None:
 
         end = now
         bars = provider.fetch_bars(symbol=symbol, timeframe=timeframe, start=start, end=end)
+        bars_fetched = len(bars)
         inserted = market_repo.append_bars(bars)
-        last_event_ts = max((b.timestamp for b in bars), default=state.last_event_timestamp)
+        baseline_ts = state.last_event_timestamp if state is not None else None
+        last_event_ts = max((b.timestamp for b in bars), default=baseline_ts)
 
         state_repo.upsert_state(
             dataset_type=DATASET_TYPE,
@@ -76,7 +81,8 @@ def refresh_market_data(symbol: str, timeframe: str) -> None:
             error_message=None,
         )
 
-        print(f"[refresh_market_data] inserted={inserted}, last_event_timestamp={last_event_ts}")
+        print(f"[refresh_market_data] fetched={bars_fetched} inserted={inserted}, last_event_timestamp={last_event_ts}")
+        return bars_fetched, inserted
 
 
 def main() -> None:
