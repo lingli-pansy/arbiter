@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Iterable, List
 
-from sqlalchemy import select
+from sqlalchemy import Select, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -77,4 +77,39 @@ class MarketRepository:
             )
             for row in rows
         ]
+
+    def get_latest_bars(
+        self,
+        symbol: str,
+        timeframe: str,
+        limit: int,
+    ) -> List[MarketBar]:
+        """按 timestamp 降序 LIMIT N 查询最新的 K 线."""
+        stmt: Select[MarketBarORM] = (
+            select(MarketBarORM)
+            .where(
+                MarketBarORM.symbol == symbol,
+                MarketBarORM.timeframe == timeframe,
+            )
+            .order_by(MarketBarORM.timestamp.desc())
+            .limit(limit)
+        )
+        rows = self.session.execute(stmt).scalars().all()
+        bars: List[MarketBar] = [
+            MarketBar(
+                symbol=row.symbol,
+                timestamp=row.timestamp,
+                timeframe=row.timeframe,
+                open=row.open,
+                high=row.high,
+                low=row.low,
+                close=row.close,
+                volume=row.volume,
+                source=row.source,
+            )
+            for row in rows
+        ]
+        # 统一按时间升序返回
+        bars.sort(key=lambda b: b.timestamp)
+        return bars
 

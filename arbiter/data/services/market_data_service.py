@@ -23,14 +23,13 @@ def get_latest_bars(
     timeframe: str,
     limit: int,
 ):
-    """Return latest N bars for a symbol/timeframe from PostgreSQL."""
-    end = datetime(2100, 1, 1, tzinfo=timezone.utc)
-    start = datetime(1970, 1, 1, tzinfo=timezone.utc)
-    bars = get_market_bars(symbol, timeframe, start, end)
-    bars = sorted(bars, key=lambda b: b.timestamp)
-    if len(bars) <= limit:
-        return bars
-    return bars[-limit:]
+    """Return latest N bars for a symbol/timeframe from PostgreSQL.
+
+    使用底层 repository 的 LIMIT 查询，而不是全表扫描再切片。
+    """
+    with get_session() as session:
+        repo = MarketRepository(session)
+        return repo.get_latest_bars(symbol=symbol, timeframe=timeframe, limit=limit)
 
 
 def refresh_market_data_and_get_state(symbol: str, timeframe: str) -> dict:

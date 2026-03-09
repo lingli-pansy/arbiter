@@ -5,8 +5,14 @@ from typing import Any, Dict, List
 
 from fastmcp import FastMCP
 
-from arbiter.data.schemas.market import MarketBarModel, NewsEventModel
-from arbiter.data.services import market_data_service, news_service, refresh_state_service
+from arbiter.config.universe import MARKET_SYMBOLS
+from arbiter.data.schemas.market import MarketBarModel
+from arbiter.data.services import (
+    market_data_service,
+    news_service,
+    refresh_state_service,
+    universe_service,
+)
 
 
 mcp = FastMCP("Arbiter Data MCP")
@@ -103,6 +109,46 @@ def refresh_news(
     """Manually trigger news refresh and return summary."""
     result = news_service.refresh_news_and_get_state(symbol)
     return result
+
+
+@mcp.tool
+def refresh_market_batch(
+    symbols: list[str],
+    timeframe: str,
+) -> list[Dict[str, Any]]:
+    """Sequentially refresh market data for a batch of symbols."""
+    results: list[Dict[str, Any]] = []
+    for symbol in symbols:
+        results.append(market_data_service.refresh_market_data_and_get_state(symbol, timeframe))
+    return results
+
+
+@mcp.tool
+def refresh_news_batch(
+    symbols: list[str],
+) -> list[Dict[str, Any]]:
+    """Sequentially refresh news for a batch of symbols."""
+    results: list[Dict[str, Any]] = []
+    for symbol in symbols:
+        results.append(news_service.refresh_news_and_get_state(symbol))
+    return results
+
+
+@mcp.tool
+def get_universe_data_summary(
+    symbols: list[str] | None = None,
+    timeframe: str = "1d",
+    limit: int | None = None,
+) -> list[Dict[str, Any]]:
+    """Get a lightweight data summary for a set of symbols.
+
+    If `symbols` is omitted, uses the default MARKET_SYMBOLS universe
+    (optionally truncated by `limit`).
+    """
+    if symbols is None:
+        symbols = MARKET_SYMBOLS if limit is None else MARKET_SYMBOLS[:limit]
+
+    return universe_service.get_universe_data_summary(symbols, timeframe)
 
 
 def main() -> None:
