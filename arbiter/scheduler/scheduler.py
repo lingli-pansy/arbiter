@@ -5,6 +5,7 @@ import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from arbiter.scheduler.jobs.agent_market_scan_job import run_agent_market_scan_job
 from arbiter.scheduler.jobs.market_job import run_market_refresh_job
 from arbiter.scheduler.jobs.news_job import run_news_refresh_job
 
@@ -38,8 +39,17 @@ def start_scheduler() -> BackgroundScheduler:
         replace_existing=True,
     )
 
+    # 由 Arbiter 侧定时触发 OpenClaw 风格的市场巡视任务
+    scheduler.add_job(
+        run_agent_market_scan_job,
+        "interval",
+        minutes=60,
+        id="agent_market_scan_job",
+        replace_existing=True,
+    )
+
     scheduler.start()
-    logger.info("Arbiter scheduler started with market/news refresh jobs.")
+    logger.info("Arbiter scheduler started with market/news refresh jobs and agent market scan job.")
     return scheduler
 
 
