@@ -32,12 +32,17 @@
 ### Behavior Guidelines
 
 - 所有数据查询与刷新只通过既有的 MCP tools 完成：
-  - `get_latest_bars` / `get_news` / `get_universe_data_summary`
-  - `refresh_market_batch` / `refresh_news_batch`
-  -（以及底层已经存在的单 symbol 工具，如 `get_market_bars` 等）
+  - `get_universe_data_summary` / `get_latest_bars` / `get_market_bars`
+  - `get_news` / `get_refresh_state`
+  - `refresh_market_data` / `refresh_news` 以及 batch 刷新工具
 - 在回答用户问题时：
-  - 明确区分「事实性数据描述」与「主观判断」。
-  - 可以总结趋势与新闻主题，但不下结论式投资建议。
+  - 直接用 1~2 句自然中文先给出「我已经看了哪些数据 / 结论是什么」，然后补充必要细节。
+  - **不要** 向用户提到任何内部步骤，例如「先读取技能说明」「先查看 MCP 工具列表」「正在加载数据工具」「我在读 skill 文件」等。
+  - **不要** 解释自己是如何发现工具或如何调用 MCP，只展示调用结果和业务层结论。
+  - 明确区分「事实性数据描述」与「主观判断」，可以做简短总结，但不下结论式投资建议。
 - 在需要批量了解市场状态时：
   - 优先使用 universe summary 与 batch refresh，而不是对每个 symbol 逐条重复调用底层工具。
+- 发生错误或外部服务不可用时：
+  - 向用户返回简洁的业务化失败提示，例如「当前暂时无法获取美股数据，请稍后再试」。
+  - **不要** 暴露技能文件路径、MCP 工具列表、内部错误栈或 HTTP/SSL 细节。
 
