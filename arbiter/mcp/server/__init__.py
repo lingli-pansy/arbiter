@@ -8,11 +8,12 @@ from fastmcp import FastMCP
 from arbiter.config.universe import MARKET_SYMBOLS
 from arbiter.data.schemas.market import MarketBarModel
 from arbiter.data.services import (
-    market_data_service,
     news_service,
     refresh_state_service,
-    universe_service,
 )
+from arbiter.data.repositories.db import get_session
+from arbiter.market_store import operations as store_ops
+from arbiter.market_store import queries as store_queries
 
 
 mcp = FastMCP("Arbiter Data MCP")
@@ -32,11 +33,31 @@ def get_market_bars(
     start: str,
     end: str,
 ) -> List[Dict[str, Any]]:
-    """Query historical market bars from Arbiter's database."""
+    """Query historical canonical market bars from Arbiter's store."""
     start_dt = _parse_iso8601(start)
     end_dt = _parse_iso8601(end)
-    bars = market_data_service.get_market_bars(symbol, timeframe, start_dt, end_dt)
-    return [MarketBarModel.model_validate(b).model_dump() for b in bars]
+    with get_session() as session:
+        bars = store_queries.get_market_bars(
+            session,
+            symbol=symbol,
+            timeframe=timeframe,
+            start=start_dt,
+            end=end_dt,
+        )
+        return [
+            MarketBarModel(
+                symbol=b.symbol,
+                timestamp=b.timestamp,
+                timeframe=b.timeframe,
+                open=b.open,
+                high=b.high,
+                low=b.low,
+                close=b.close,
+                volume=b.volume,
+                source=b.source,
+            ).model_dump()
+            for b in bars
+        ]
 
 
 @mcp.tool
@@ -45,9 +66,28 @@ def get_latest_bars(
     timeframe: str,
     limit: int = 20,
 ) -> List[Dict[str, Any]]:
-    """Query latest N market bars for a symbol/timeframe."""
-    bars = market_data_service.get_latest_bars(symbol, timeframe, limit)
-    return [MarketBarModel.model_validate(b).model_dump() for b in bars]
+    """Query latest N canonical market bars for a symbol/timeframe."""
+    with get_session() as session:
+        bars = store_queries.get_latest_bars(
+            session,
+            symbol=symbol,
+            timeframe=timeframe,
+            limit=limit,
+        )
+        return [
+            MarketBarModel(
+                symbol=b.symbol,
+                timestamp=b.timestamp,
+                timeframe=b.timeframe,
+                open=b.open,
+                high=b.high,
+                low=b.low,
+                close=b.close,
+                volume=b.volume,
+                source=b.source,
+            ).model_dump()
+            for b in bars
+        ]
 
 
 @mcp.tool
@@ -148,7 +188,142 @@ def get_universe_data_summary(
     if symbols is None:
         symbols = MARKET_SYMBOLS if limit is None else MARKET_SYMBOLS[:limit]
 
-    return universe_service.get_universe_data_summary(symbols, timeframe)
+    with get_session() as session:
+        return store_queries.get_universe_data_summary(session, symbols=symbols, timeframe=timeframe)
+
+
+@mcp.tool
+def get_data_coverage(
+    symbols: list[str] | None = None,
+    timeframe: str = "1d",
+) -> list[Dict[str, Any]]:
+    """Return coverage information (start, end, count) for the given universe."""
+    if symbols is None:
+        symbols = MARKET_SYMBOLS
+    with get_session() as session:
+        return store_queries.get_data_coverage(session, symbols=symbols, timeframe=timeframe)
+
+
+@mcp.tool
+def get_ingest_job_status(
+    symbol: str | None = None,
+    timeframe: str | None = None,
+    limit: int = 20,
+) -> list[Dict[str, Any]]:
+    """Return recent ingest job (segment) status."""
+    with get_session() as session:
+        return store_queries.get_ingest_job_status(
+            session,
+            symbol=symbol,
+            timeframe=timeframe,
+            limit=limit,
+        )
+
+
+@mcp.tool
+def ingest_market_data(
+    bars: list[Dict[str, Any]],
+    source: str = "realtime-ingest",
+) -> Dict[str, Any]:
+    """
+    Control API: write canonical bars using ingest semantics.
+
+    This is primarily intended for orchestrated ingestion (e.g. NT bridge or
+    batch jobs), not for ad-hoc user calls.
+    """
+
+    payloads: list[store_ops.BarPayload] = []
+    for b in bars:
+        payloads.append(
+            store_ops.BarPayload(
+                instrument_id=b["instrument_id"],
+                symbol=b["symbol"],
+                venue=b["venue"],
+                timeframe=b["timeframe"],
+                timestamp=_parse_iso8601(b["timestamp"]),
+                open=b["open"],
+                high=b["high"],
+                low=b["low"],
+                close=b["close"],
+                volume=b["volume"],
+                currency=b.get("currency", "USD"),
+                source=source,
+                status=b.get("status", "provisional"),
+                version=int(b.get("version", 1)),
+                priority=int(b.get("priority", 0)),
+                quality_flag=b.get("quality_flag"),
+            )
+        )
+
+    with get_session() as session:
+        inserted = store_ops.ingest_market_data(session, bars=payloads, source=source)  # type: ignore[arg-type]
+    return {"inserted": inserted}
+
+
+@mcp.tool
+def repair_market_data(
+    bars: list[Dict[str, Any]],
+    source: str = "repair",
+) -> Dict[str, Any]:
+    """Control API: write canonical bars using repair semantics."""
+
+    payloads: list[store_ops.BarPayload] = []
+    for b in bars:
+        payloads.append(
+            store_ops.BarPayload(
+                instrument_id=b["instrument_id"],
+                symbol=b["symbol"],
+                venue=b["venue"],
+                timeframe=b["timeframe"],
+                timestamp=_parse_iso8601(b["timestamp"]),
+                open=b["open"],
+                high=b["high"],
+                low=b["low"],
+                close=b["close"],
+                volume=b["volume"],
+                currency=b.get("currency", "USD"),
+                source=source,
+                status=b.get("status", "provisional"),
+                version=int(b.get("version", 1)),
+                priority=int(b.get("priority", 0)),
+                quality_flag=b.get("quality_flag"),
+            )
+        )
+
+    with get_session() as session:
+        inserted = store_ops.repair_market_data(session, bars=payloads, source=source)  # type: ignore[arg-type]
+    return {"inserted": inserted}
+
+
+@mcp.tool
+def finalize_market_data(
+    symbol: str,
+    timeframe: str,
+    start: str,
+    end: str,
+) -> Dict[str, Any]:
+    """
+    Minimal finalize implementation: mark matching bars as finalized.
+
+    This follows the guide's semantic that finalized data should win in
+    conflict resolution.
+    """
+
+    start_dt = _parse_iso8601(start)
+    end_dt = _parse_iso8601(end)
+    with get_session() as session:
+        bars = store_queries.get_market_bars(
+            session,
+            symbol=symbol,
+            timeframe=timeframe,
+            start=start_dt,
+            end=end_dt,
+        )
+        for b in bars:
+            b.status = "finalized"
+            session.add(b)
+        updated = len(bars)
+    return {"finalized": updated}
 
 
 def main() -> None:
