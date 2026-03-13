@@ -8,7 +8,7 @@ input:
   strategy_id:
     type: string
     required: true
-    description: 策略标识，如 momentum_20d
+    description: 策略标识，如 momentum_20d, mean_reversion, ema_cross
   nt_bars:
     type: object
     required: true
@@ -46,7 +46,7 @@ input:
   config:
     type: object
     required: false
-    description: 策略配置覆盖
+    description: 策略配置覆盖。momentum_20d/mean_reversion 支持 lookback_period, trade_size；mean_reversion 额外支持 deviation_threshold
 
 output:
   type: object

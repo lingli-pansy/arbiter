@@ -1,0 +1,71 @@
+"""
+MeanReversion: 均值回归策略，用于 TASK_0010 策略对比。
+当价格低于 N 日均线 X% 时做多，回归均线时平仓。
+"""
+from __future__ import annotations
+
+from decimal import Decimal
+
+from nautilus_trader.config import StrategyConfig
+from nautilus_trader.model.data import Bar, BarType
+from nautilus_trader.model.enums import OrderSide
+from nautilus_trader.model.identifiers import InstrumentId
+from nautilus_trader.model.objects import Quantity
+from nautilus_trader.trading.strategy import Strategy
+
+
+class MeanReversionConfig(StrategyConfig):
+    """MeanReversion 策略配置"""
+    instrument_id: str
+    bar_type: str
+    lookback_period: int = 20
+    deviation_threshold: float = 0.02  # 2%，价格低于 MA*(1-threshold) 时买入
+    trade_size: Decimal = Decimal("100")
+
+
+class MeanReversion(Strategy):
+    """均值回归策略：价格偏离均线后回归时交易"""
+
+    def __init__(self, config: MeanReversionConfig) -> None:
+        super().__init__(config)
+        self._config = config
+        self._instrument_id = InstrumentId.from_str(config.instrument_id)
+        self._lookback = config.lookback_period
+        self._threshold = config.deviation_threshold
+        self._trade_size = config.trade_size
+        self._close_history: list[Decimal] = []
+
+    def on_start(self) -> None:
+        bt = BarType.from_str(self._config.bar_type)
+        self.subscribe_bars(bt)
+
+    def on_bar(self, bar: Bar) -> None:
+        self._close_history.append(bar.close.as_decimal())
+        if len(self._close_history) < self._lookback:
+            return
+        self._close_history = self._close_history[-self._lookback:]
+        close_now = self._close_history[-1]
+        ma = sum(self._close_history) / len(self._close_history)
+        if ma <= 0:
+            return
+        deviation = float((close_now - ma) / ma)
+        net_qty = self.portfolio.net_position(self._instrument_id)
+        positions = self.cache.positions(instrument_id=self._instrument_id) if self.cache else []
+        position = positions[0] if positions else None
+        if self.order_factory is None:
+            return
+        if deviation < -self._threshold and (net_qty is None or net_qty <= 0):
+            try:
+                order = self.order_factory.market(
+                    instrument_id=self._instrument_id,
+                    order_side=OrderSide.BUY,
+                    quantity=Quantity.from_int(int(self._trade_size)),
+                )
+                self.submit_order(order)
+            except Exception:
+                pass
+        elif deviation >= 0 and position is not None and net_qty is not None and net_qty > 0:
+            try:
+                self.close_position(position)
+            except Exception:
+                pass

@@ -101,3 +101,40 @@ def test_contract_output_structure() -> None:
     assert isinstance(metrics, dict)
     for key in ("sharpe_ratio", "max_drawdown_pct", "cagr_pct", "total_trades"):
         assert key in metrics
+
+
+def test_mean_reversion_strategy() -> None:
+    """mean_reversion 策略可运行并返回完整输出 (TICKET_0007)"""
+    # 50 bars: 前 25 根 close~185，中间 15 根跌至 ~181 (低于 MA 2%)，后 10 根回归
+    base = 1704067200000000000
+    bars = []
+    for i in range(50):
+        if i < 20:
+            close = "185.0"
+        elif i < 35:
+            close = "181.0"  # 约 2% 低于 MA
+        else:
+            close = "185.0"  # 回归
+        bars.append({
+            "bar_type": "AAPL.NASDAQ-1-DAY-LAST",
+            "open": close,
+            "high": "187.0",
+            "low": "180.0",
+            "close": close,
+            "volume": "52000000",
+            "ts_event": base + i * 86400 * 1_000_000_000,
+            "ts_init": base + i * 86400 * 1_000_000_000,
+            "is_revision": False,
+        })
+    params = {
+        "strategy_id": "mean_reversion",
+        "nt_bars": {"data": {"AAPL": bars}, "meta": {"timeframe": "1d", "timeframe_nt": "1-DAY"}},
+        "symbols": ["AAPL"],
+        "config": {"lookback_period": 20, "deviation_threshold": 0.02, "trade_size": 10},
+    }
+    code, out = _run(params)
+    assert code == 0, f"Expected 0, got {code}, stderr/out: {out}"
+    assert out.get("success") is True
+    assert out["meta"]["strategy_id"] == "mean_reversion"
+    assert "report" in out
+    assert "metrics" in out.get("report", {})

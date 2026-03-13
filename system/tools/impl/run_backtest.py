@@ -268,6 +268,19 @@ def _run_engine_impl(nt_bars_list: list, strategy_id: str, symbols: list[str], c
             trade_size=Decimal(str(config.get("trade_size", 100))),
         )
         strategy = Momentum20d(config=cfg)
+    elif strategy_id == "mean_reversion":
+        from strategies.mean_reversion import MeanReversion, MeanReversionConfig
+
+        bt = nt_bars_list[0].bar_type
+        instrument_id = str(bt.instrument_id)
+        cfg = MeanReversionConfig(
+            instrument_id=instrument_id,
+            bar_type=str(bt),
+            lookback_period=config.get("lookback_period", 20),
+            deviation_threshold=float(config.get("deviation_threshold", 0.02)),
+            trade_size=Decimal(str(config.get("trade_size", 100))),
+        )
+        strategy = MeanReversion(config=cfg)
     elif strategy_id == "ema_cross":
         from nautilus_trader.config import ImportableStrategyConfig
 
