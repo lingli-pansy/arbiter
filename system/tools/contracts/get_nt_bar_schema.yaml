@@ -1,0 +1,50 @@
+# Contract for get_nt_bar_schema
+# TICKET_0002; Source: TASK_0001B (Market data source alignment)
+
+name: get_nt_bar_schema
+description: 获取 NautilusTrader Bar 数据结构的 schema 定义
+
+input:
+  format:
+    type: string
+    required: false
+    description: 输出 schema 的格式
+    default: "dict"
+    enum: ["dict", "json_schema", "python_type"]
+  include_examples:
+    type: boolean
+    required: false
+    description: 是否包含示例 Bar 数据
+    default: true
+
+output:
+  type: object
+  properties:
+    success:
+      type: boolean
+      description: 查询是否成功
+    schema:
+      type: object
+      description: Bar 数据结构的完整定义
+      properties:
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              type: { type: string }
+              required: { type: boolean }
+              description: { type: string }
+        example:
+          type: object
+          description: 示例 Bar 数据（当 include_examples 为 true 时）
+    version:
+      type: string
+      description: NautilusTrader 版本
+    meta:
+      type: object
+      description: 元信息
+      properties:
+        source: { type: string }
+        note: { type: string }

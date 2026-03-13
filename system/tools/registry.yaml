@@ -1,0 +1,29 @@
+# Arbiter 工具注册表
+# 仅在此登记且 status: active 的工具对基金经理 agent 可见、可用。
+
+tools:
+  get_market_bars_batch:
+    status: active
+    contract: contracts/get_market_bars_batch.yaml
+    impl: impl/get_market_bars_batch.py
+    description: 批量获取多标的市场行情数据（OHLCV）
+  get_nt_bar_schema:
+    status: active
+    contract: contracts/get_nt_bar_schema.yaml
+    impl: impl/get_nt_bar_schema.py
+    description: 获取 NautilusTrader Bar 数据结构的 schema 定义
+  get_symbol_venue:
+    status: active
+    contract: contracts/get_symbol_venue.yaml
+    impl: impl/get_symbol_venue.py
+    description: 将标的代码映射为 NT BarType 所需的 venue（交易所）标识
+  convert_bars_to_nt:
+    status: active
+    contract: contracts/convert_bars_to_nt.yaml
+    impl: impl/convert_bars_to_nt.py
+    description: 将 get_market_bars_batch 输出转为 NautilusTrader 兼容格式（adapter）
+  run_backtest:
+    status: active
+    contract: contracts/run_backtest.yaml
+    impl: impl/run_backtest.py
+    description: 执行 NautilusTrader 回测，输入为 convert_bars_to_nt 格式

@@ -1,0 +1,68 @@
+# Contract for get_market_bars_batch
+# TICKET_0001; Source: TASK_0001 (Initial Watchlist Review)
+
+name: get_market_bars_batch
+description: 批量获取多标的市场行情数据（OHLCV）
+
+input:
+  symbols:
+    type: array[string]
+    required: true
+    description: 标的代码列表，如 ["AAPL", "MSFT"]
+    example: ["AAPL", "MSFT", "NVDA", "AMZN", "META"]
+    min_items: 1
+    max_items: 10
+  lookback_days:
+    type: integer
+    required: true
+    description: 回溯天数
+    default: 20
+    min: 1
+    max: 252
+  timeframe:
+    type: string
+    required: false
+    description: K线周期
+    default: "1d"
+    enum: ["1m", "5m", "15m", "1h", "4h", "1d"]
+  provider:
+    type: string
+    required: false
+    description: 数据源提供商
+    default: "yahoo"
+    enum: ["yahoo", "ibkr", "polygon"]
+
+output:
+  type: object
+  properties:
+    success:
+      type: boolean
+      description: 查询是否成功
+    data:
+      type: object
+      description: 按 symbol 分组的数据
+      additionalProperties:
+        type: array
+        items:
+          type: object
+          properties:
+            timestamp: { type: string, format: datetime }
+            open: { type: number }
+            high: { type: number }
+            low: { type: number }
+            close: { type: number }
+            volume: { type: integer }
+    errors:
+      type: array
+      items:
+        type: object
+        properties:
+          symbol: { type: string }
+          error: { type: string }
+    meta:
+      type: object
+      properties:
+        requested_symbols: { type: integer }
+        returned_symbols: { type: integer }
+        timeframe: { type: string }
+        provider: { type: string }

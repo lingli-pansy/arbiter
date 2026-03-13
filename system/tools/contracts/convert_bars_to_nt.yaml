@@ -1,0 +1,66 @@
+# Contract for convert_bars_to_nt (TICKET_0003)
+# Source: TASK_0001B; Adapter pattern - 不修改 get_market_bars_batch
+
+name: convert_bars_to_nt
+description: 将 get_market_bars_batch 输出的 native bars 转为 NautilusTrader 兼容格式
+
+input:
+  market_data:
+    type: object
+    required: true
+    description: get_market_bars_batch 的完整输出或其中的 data 字段
+    properties:
+      data:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp: {}
+              open: {}
+              high: {}
+              low: {}
+              close: {}
+              volume: {}
+  venue_map:
+    type: object
+    required: false
+    description: symbol -> venue 映射；缺省时使用内置解析（可先调用 get_symbol_venue）
+    additionalProperties:
+      type: string
+  timeframe:
+    type: string
+    required: false
+    default: "1d"
+    description: K 线周期，用于生成 bar_type
+    enum: ["1m", "5m", "15m", "1h", "4h", "1d"]
+
+output:
+  type: object
+  properties:
+    success:
+      type: boolean
+    data:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: object
+          properties:
+            bar_type: { type: string }
+            open: { type: string }
+            high: { type: string }
+            low: { type: string }
+            close: { type: string }
+            volume: { type: string }
+            ts_event: { type: integer }
+            ts_init: { type: integer }
+            is_revision: { type: boolean }
+    errors:
+      type: array
+    meta:
+      type: object
+      properties:
+        timeframe: { type: string }
+        source_format: { type: string, default: "get_market_bars_batch" }

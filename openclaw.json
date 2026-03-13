@@ -6,10 +6,10 @@
         "./workspace/skills"
       ]
     }
-  },                                                                                                    
-  "sandbox": {                                                                                              
-    "policy": "none"                                                   
-  } ,                                                                                                       
+  },
+  "sandbox": {
+    "policy": "none"
+  },
   "agents": {
     "defaults": {
       "model": "kimi-coding/k2p5",
@@ -20,36 +20,36 @@
       {
         "id": "fund-manager-dev",
         "name": "OpenClaw 基金经理（开发环境）",
-        "description": "在开发阶段，用真实基金经理工作流对交易辅助系统进行压力测试和验收的 OpenClaw agent。",
-        "workspace": ".",
+        "description": "在开发阶段，用真实基金经理工作流对交易辅助系统进行压力测试和验收的 OpenClaw agent。人格与工作流定义见 workspace/AGENTS.md。",
+        "workspace": "./workspace",
         "skills": [
           "fund-manager-dev-loop",
           "arbiter-tool-contracts"
         ],
         "env": {
-          "ARBITER_ROOT": ".",
-          "ARBITER_TASKS_DIR": "./agents/fund_manager/tasks",
-          "ARBITER_TICKETS_DIR": "./agents/fund_manager/tickets",
-          "ARBITER_REPORTS_DIR": "./agents/fund_manager/reports",
-          "ARBITER_REGISTRY": "./system/tools/registry.yaml"
+          "ARBITER_ROOT": "..",
+          "ARBITER_TASKS_DIR": "../agents/fund_manager/tasks",
+          "ARBITER_TICKETS_DIR": "../agents/fund_manager/tickets",
+          "ARBITER_REPORTS_DIR": "../agents/fund_manager/reports",
+          "ARBITER_REGISTRY": "../system/tools/registry.yaml"
         }
       },
       {
         "id": "arbiter-dev",
         "name": "Arbiter 开发环境基金经理",
-        "description": "绑定本地 arbiter-2 项目，用于能力验证与迭代开发的基金经理风格 agent。",
-        "workspace": ".",
+        "description": "绑定本地 arbiter-2 项目，用于能力验证与迭代开发的基金经理风格 agent。人格与工作流定义见 workspace/AGENTS.md。",
+        "workspace": "./workspace",
         "model": "kimi-coding/k2p5",
         "skills": [
           "fund-manager-dev-loop",
           "arbiter-tool-contracts"
         ],
         "env": {
-          "ARBITER_ROOT": "./workspace",
-          "ARBITER_TASKS_DIR": "./agents/fund_manager/tasks",
-          "ARBITER_TICKETS_DIR": "./agents/fund_manager/tickets",
-          "ARBITER_REPORTS_DIR": "./agents/fund_manager/reports",
-          "ARBITER_REGISTRY": "./system/tools/registry.yaml"
+          "ARBITER_ROOT": "..",
+          "ARBITER_TASKS_DIR": "../agents/fund_manager/tasks",
+          "ARBITER_TICKETS_DIR": "../agents/fund_manager/tickets",
+          "ARBITER_REPORTS_DIR": "../agents/fund_manager/reports",
+          "ARBITER_REGISTRY": "../system/tools/registry.yaml"
         }
       }
     ]

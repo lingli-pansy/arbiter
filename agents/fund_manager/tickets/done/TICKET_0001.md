@@ -1,7 +1,8 @@
 # TICKET_0001: Implement get_market_bars_batch Tool
 
-**Status:** open  
+**Status:** done  
 **Created:** 2026-03-12  
+**Closed:** 2026-03-13  
 **Source Task:** TASK_0001 (Initial Watchlist Review)  
 
 ---
@@ -88,12 +89,12 @@ output:
 ```
 
 ## Acceptance Criteria
-1. [ ] 工具在 registry.yaml 中注册，status = active
-2. [ ] 支持同时查询 1-10 个 symbol
-3. [ ] 返回数据包含完整 OHLCV 字段
-4. [ ] 部分失败时返回成功 symbol 数据 + 失败 symbol 错误信息
-5. [ ] 输入验证失败返回清晰错误（如 symbol 格式错误、lookback_days 越界）
-6. [ ] 包含至少一个测试用例验证契约
+1. [x] 工具在 registry.yaml 中注册，status = active
+2. [x] 支持同时查询 1-10 个 symbol
+3. [x] 返回数据包含完整 OHLCV 字段
+4. [x] 部分失败时返回成功 symbol 数据 + 失败 symbol 错误信息
+5. [x] 输入验证失败返回清晰错误（如 symbol 格式错误、lookback_days 越界）
+6. [x] 包含至少一个测试用例验证契约
 
 ## Test Case
 **输入:**
@@ -130,3 +131,13 @@ output:
 - 底层可使用 yfinance、IB API 或 Polygon
 - 建议先用 yfinance 快速实现（无需认证）
 - 后续可扩展支持 IBKR 实盘数据源
+
+---
+
+## Implementation Summary (2026-03-13)
+
+- **Contract:** `system/tools/contracts/get_market_bars_batch.yaml`
+- **Registry:** `system/tools/registry.yaml` — `get_market_bars_batch` 已注册，status = active
+- **Impl:** `system/tools/impl/get_market_bars_batch.py` — 从 stdin 或首参读 JSON，写 JSON 到 stdout；底层 yfinance，provider 仅实现 yahoo
+- **Tests:** `system/tools/tests/test_get_market_bars_batch.py` — 4 个用例：非法 JSON、symbols 超 10、lookback_days 越界、输出结构符合契约
+- **Run:** `python system/tools/impl/get_market_bars_batch.py '{"symbols":["AAPL","MSFT"],"lookback_days":20,"timeframe":"1d"}'`（需安装 yfinance，建议使用仓库根目录 `.venv`）

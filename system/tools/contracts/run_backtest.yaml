@@ -1,0 +1,74 @@
+# Contract for run_backtest (TASK_0008)
+# 输入 market data 兼容 convert_bars_to_nt 输出
+
+name: run_backtest
+description: 执行 NautilusTrader 回测，输入为 convert_bars_to_nt 格式的 bars
+
+input:
+  strategy_id:
+    type: string
+    required: true
+    description: 策略标识，如 momentum_20d
+  nt_bars:
+    type: object
+    required: true
+    description: convert_bars_to_nt 的输出（含 data、meta）
+    properties:
+      data:
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: object
+            properties:
+              bar_type: {}
+              open: {}
+              high: {}
+              low: {}
+              close: {}
+              volume: {}
+              ts_event: {}
+              ts_init: {}
+      meta:
+        type: object
+  symbols:
+    type: array[string]
+    required: false
+    description: 用于报告/过滤，缺省时从 nt_bars.data 推断
+  start:
+    type: string
+    required: false
+    description: 回测开始日期，ISO 8601
+  end:
+    type: string
+    required: false
+    description: 回测结束日期，ISO 8601
+  config:
+    type: object
+    required: false
+    description: 策略配置覆盖
+
+output:
+  type: object
+  properties:
+    success:
+      type: boolean
+    report:
+      type: object
+      description: 回测报告
+      properties:
+        account_summary: {}
+        positions: {}
+        order_fills: {}
+        metrics: {}
+    errors:
+      type: array
+    meta:
+      type: object
+      properties:
+        strategy_id: {}
+        symbols: {}
+        start: {}
+        end: {}
+        bars_loaded: {}
+        status: {}

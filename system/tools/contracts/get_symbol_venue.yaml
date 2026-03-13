@@ -1,0 +1,36 @@
+# Contract for get_symbol_venue (TICKET_0004)
+# Source: TASK_0001B (Market data source alignment)
+
+name: get_symbol_venue
+description: 将标的代码映射为 NautilusTrader BarType 所需的 venue（交易所）标识
+
+input:
+  symbols:
+    type: array[string]
+    required: true
+    description: 标的代码列表
+    min_items: 1
+    max_items: 50
+
+output:
+  type: object
+  properties:
+    success:
+      type: boolean
+    data:
+      type: object
+      additionalProperties:
+        type: string
+      description: symbol -> venue 映射，如 {"AAPL":"NASDAQ","MSFT":"NASDAQ"}
+    errors:
+      type: array
+      items:
+        type: object
+        properties:
+          symbol: { type: string }
+          error: { type: string }
+    meta:
+      type: object
+      properties:
+        requested_symbols: { type: integer }
+        resolved_symbols: { type: integer }
