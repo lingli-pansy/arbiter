@@ -31,4 +31,9 @@ Priority
 P0
 
 Status
-pending
+done (analysis only)
+
+Execution_Notes
+- 本任务为分析任务，产出 NT integration note
+- 未涉及真实 NT 回测执行
+- 实际回测验证见 TASK_0022_NT_BACKTEST_VALIDATION

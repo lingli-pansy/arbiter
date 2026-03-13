@@ -29,10 +29,10 @@ Priority
 P2
 
 Status
-pending
+done
 
 Blockers
-none
+None - TICKET_20260314_002 resolved
 
 Notes
 不要在这一阶段连接真实 IB 下单，只做 simulation。

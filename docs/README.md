@@ -19,3 +19,9 @@ How to use:
 3. Start OpenClaw using this workspace config.
 4. Give the agent an initial task file under `agents/fund_manager/tasks/pending/`.
 5. Let the agent run; it should either produce a ticket or a report.
+
+**环境与 IB 连接 (Environment & IB Gateway):**
+- 项目使用 `.venv` 集中管理依赖。安装: `./scripts/install_ib_deps.sh`（支持 `--recreate` 重建 venv）
+- Python 3.11–3.13（避开 3.14 与 ib_insync 的兼容问题）
+- connect_broker: **live** 连实盘 (TWS 7496 / Gateway 4001)，**paper** 连 IB Paper (TWS 7497 / Gateway 4002)
+- 调用 broker 工具请使用 `.venv/bin/python`；验证依赖: `.venv/bin/python system/tools/impl/verify_ib_deps.py`

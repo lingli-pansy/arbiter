@@ -46,19 +46,74 @@ def _save_connections(data: dict) -> None:
         json.dump(data, f, indent=2)
 
 
-def create_paper_connection(broker: str, timeout_ms: int) -> tuple[str, int]:
-    """Create paper connection, return (connection_id, latency_ms)."""
+def _create_ib_connection(
+    broker: str,
+    host: str,
+    port: int,
+    client_id: int,
+    timeout_ms: int,
+    mode: str,
+) -> tuple[str, int, str | None]:
+    """Connect to IB (live or paper), verify, then disconnect. Returns (connection_id, latency_ms, error)."""
+    try:
+        import nest_asyncio
+        nest_asyncio.apply()
+    except ImportError:
+        pass  # nest_asyncio not installed, may fail if called from existing loop
     conn_id = str(uuid.uuid4())
     start = time.perf_counter()
-    data = _load_connections()
-    data[conn_id] = {
-        "broker": broker,
-        "mode": "paper",
-        "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-    }
-    _save_connections(data)
-    latency_ms = int((time.perf_counter() - start) * 1000)
-    return conn_id, latency_ms
+
+    def _connect_and_verify_sync():
+        from ib_insync import IB
+        ib = IB()
+        ib.connect(host, port, clientId=client_id, timeout=timeout_ms / 1000.0)
+        ib.disconnect()
+
+    try:
+        _connect_and_verify_sync()
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        data = _load_connections()
+        data[conn_id] = {
+            "broker": broker,
+            "mode": mode,
+            "host": host,
+            "port": port,
+            "client_id": client_id,
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        _save_connections(data)
+        return conn_id, latency_ms, None
+    except ImportError as e:
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        return "", latency_ms, f"ib_insync not installed: {e}"
+    except Exception as e:
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        err = str(e)
+        if "Connection refused" in err or "connect" in err.lower():
+            return "", latency_ms, f"Connection refused: TWS/Gateway not running on {host}:{port}"
+        return "", latency_ms, err
+
+
+def create_live_connection(
+    broker: str,
+    host: str,
+    port: int,
+    client_id: int,
+    timeout_ms: int,
+) -> tuple[str, int, str | None]:
+    """Create live IB connection (实盘)."""
+    return _create_ib_connection(broker, host, port, client_id, timeout_ms, "live")
+
+
+def create_paper_connection(
+    broker: str,
+    host: str,
+    port: int,
+    client_id: int,
+    timeout_ms: int,
+) -> tuple[str, int, str | None]:
+    """Create IB Paper 账户连接（模拟盘，连 IB Gateway/TWS Paper 端口）. Returns (connection_id, latency_ms, error)."""
+    return _create_ib_connection(broker, host, port, client_id, timeout_ms, "paper")
 
 
 def get_connection(connection_id: str) -> dict | None:

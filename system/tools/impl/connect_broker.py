@@ -11,8 +11,9 @@ import sys
 from datetime import datetime, timezone
 
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from adapters.broker_store import create_paper_connection
+from adapters.broker_store import create_live_connection, create_paper_connection
 
 VALID_BROKERS = ("ib",)
 VALID_MODES = ("live", "paper")
@@ -73,16 +74,33 @@ def main() -> None:
     timeout_ms = int(params.get("timeout_ms", 5000))
 
     if mode == "live":
-        out = _std_response(
-            False,
-            error_message="live mode requires IB Gateway/TWS running; use paper mode for testing",
-            status="failed",
+        host = str(params.get("host", "127.0.0.1"))
+        port = int(params.get("port", 7496))
+        client_id = int(params.get("client_id", 1))
+        conn_id, latency_ms, err = create_live_connection(
+            broker, host, port, client_id, timeout_ms
         )
+        if err:
+            out = _std_response(False, error_message=err, status="failed", latency_ms=latency_ms)
+        else:
+            out = _std_response(
+                True,
+                connection_id=conn_id,
+                status="connected",
+                latency_ms=latency_ms,
+            )
+        print(json.dumps(out))
+        sys.exit(0 if not err else 1)
+
+    # paper mode - 连接 IB Paper 账户 (Gateway 4002, TWS 7497)
+    host = str(params.get("host", "127.0.0.1"))
+    port = int(params.get("port", 4002))  # 4002=Gateway Paper, 7497=TWS Paper
+    client_id = int(params.get("client_id", 1))
+    conn_id, latency_ms, err = create_paper_connection(broker, host, port, client_id, timeout_ms)
+    if err:
+        out = _std_response(False, error_message=err, status="failed", latency_ms=latency_ms)
         print(json.dumps(out))
         sys.exit(1)
-
-    # paper mode
-    conn_id, latency_ms = create_paper_connection(broker, timeout_ms)
     out = _std_response(
         True,
         connection_id=conn_id,

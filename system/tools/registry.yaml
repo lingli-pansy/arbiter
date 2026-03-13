@@ -52,6 +52,21 @@ tools:
     contract: contracts/generate_order_plan.yaml
     impl: impl/generate_order_plan.py
     description: 从 rebalance proposal 生成可执行的订单计划
+  simulate_execution:
+    status: active
+    contract: contracts/simulate_execution.yaml
+    impl: impl/simulate_execution.py
+    description: 模拟订单执行并生成执行报告（paper simulation）
+  analyze_slippage:
+    status: active
+    contract: contracts/analyze_slippage.yaml
+    impl: impl/analyze_slippage.py
+    description: 分析执行报告滑点（按 symbol/side 汇总、高滑点检测）
+  execution_audit:
+    status: active
+    contract: contracts/execution_audit.yaml
+    impl: impl/execution_audit.py
+    description: 汇总执行全流程，验证一致性，生成审计报告
   calculate_portfolio_performance:
     status: active
     contract: contracts/calculate_portfolio_performance.yaml

@@ -49,8 +49,9 @@ class MeanReversion(Strategy):
         if ma <= 0:
             return
         deviation = float((close_now - ma) / ma)
-        # NT Portfolio API (TICKET_0005): position_exists 替代已废弃的 position()
-        position_exists = self.portfolio.position_exists(self._instrument_id)
+        # NT Portfolio API (TICKET_20260314_003): net_position 替代不存在的 position_exists
+        net_pos = self.portfolio.net_position(self._instrument_id)
+        position_exists = net_pos is not None and net_pos != 0
         position = None
         if position_exists and self.cache:
             pos_list = self.cache.positions(instrument_id=self._instrument_id)

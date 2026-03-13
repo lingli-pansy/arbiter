@@ -1,0 +1,81 @@
+# Contract for simulate_execution
+# TICKET_20260314_002; Source: TASK_0016, TASK_0017, TASK_0018
+
+name: simulate_execution
+description: 模拟订单执行并生成执行报告，支持 slippage 分析
+
+input:
+  order_plan:
+    type: object
+    required: true
+    description: generate_order_plan 的输出（含 order_plan 对象）
+    properties:
+      plan_id: { type: string }
+      orders:
+        type: array
+        items:
+          type: object
+          properties:
+            order_id: { type: string }
+            symbol: { type: string }
+            side: { type: string }
+            quantity: { type: integer }
+            estimated_price: { type: number }
+            estimated_value: { type: number }
+  simulation_config:
+    type: object
+    required: false
+    description: 模拟配置
+    properties:
+      fill_model:
+        type: string
+        default: immediate
+        enum: [immediate, partial, random_delay]
+        description: 成交模型
+      slippage_model:
+        type: string
+        default: none
+        enum: [none, fixed, percentage]
+        description: 滑点模型
+      slippage_value:
+        type: number
+        default: 0
+        description: 滑点数值（fixed=每股金额, percentage=百分数如0.001）
+      market_impact:
+        type: boolean
+        default: false
+        description: 是否模拟市场冲击
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    execution_report:
+      type: object
+      properties:
+        report_id: { type: string }
+        plan_id: { type: string }
+        executed_at: { type: string }
+        orders:
+          type: array
+          items:
+            type: object
+            properties:
+              order_id: { type: string }
+              symbol: { type: string }
+              side: { type: string }
+              quantity: { type: integer }
+              filled_qty: { type: integer }
+              avg_fill_price: { type: number }
+              status: { type: string }
+              slippage: { type: number }
+              timestamp: { type: string }
+        summary:
+          type: object
+          properties:
+            total_orders: { type: integer }
+            filled_orders: { type: integer }
+            partial_orders: { type: integer }
+            rejected_orders: { type: integer }
+            total_slippage: { type: number }
+    errors: { type: array }

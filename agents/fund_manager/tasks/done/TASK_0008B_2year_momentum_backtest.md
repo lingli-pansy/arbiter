@@ -40,7 +40,12 @@ Priority
 P0
 
 Status
-pending
+done (superseded by TASK_0008B_REVALIDATION)
+
+Execution_Notes
+- 原任务因策略代码 bug (TICKET_0005) 被阻塞
+- TICKET_0005 已标记完成，但未实际验证修复
+- 重新验证见 TASK_0008B_REVALIDATION
 
 Blockers
 none

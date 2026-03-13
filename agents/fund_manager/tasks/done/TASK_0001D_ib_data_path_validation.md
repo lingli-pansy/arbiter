@@ -31,4 +31,9 @@ Priority
 P0
 
 Status
-pending
+done (analysis only)
+
+Execution_Notes
+- 本任务为分析任务，产出 IB 能力调研报告
+- 未涉及真实 IB Gateway/TWS 连接
+- 实际连接验证见 TASK_0021_IB_CONNECTION_VALIDATION

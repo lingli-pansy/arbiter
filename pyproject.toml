@@ -1,0 +1,20 @@
+[project]
+name = "arbiter"
+version = "0.1.0"
+description = "Fund-manager agent trading assistant"
+readme = "docs/README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "yfinance>=0.2.0",
+    "nautilus_trader>=1.200.0",
+    "ib_insync>=0.9.86",
+    "nest_asyncio>=1.6.0",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["system*"]

@@ -1,0 +1,66 @@
+# Contract for execution_audit
+# TICKET_20260314_009; Source: TASK_0018
+
+name: execution_audit
+description: 汇总执行全流程数据，验证一致性，生成审计报告
+
+input:
+  order_plan:
+    type: object
+    required: true
+    description: generate_order_plan 输出（含 plan_id, orders）
+    properties:
+      plan_id: { type: string }
+      created_at: { type: string }
+      total_orders: { type: integer }
+      total_value: { type: number }
+      orders:
+        type: array
+        items:
+          type: object
+          properties:
+            order_id: { type: string }
+            symbol: { type: string }
+            side: { type: string }
+            quantity: { type: integer }
+            estimated_price: { type: number }
+            estimated_value: { type: number }
+  execution_report:
+    type: object
+    required: true
+    description: simulate_execution 的 execution_report
+    properties:
+      report_id: { type: string }
+      plan_id: { type: string }
+      executed_at: { type: string }
+      orders: { type: array }
+      summary: { type: object }
+  slippage_report:
+    type: object
+    required: false
+    description: analyze_slippage 的 slippage_report
+  audit_config:
+    type: object
+    required: false
+    properties:
+      check_consistency: { type: boolean, default: true }
+      flag_partial_fills: { type: boolean, default: true }
+      flag_high_slippage: { type: number, default: 1.0 }
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    audit_report:
+      type: object
+      properties:
+        audit_id: { type: string }
+        plan_id: { type: string }
+        execution_report_id: { type: string }
+        audited_at: { type: string }
+        consistency_check: { type: object }
+        execution_summary: { type: object }
+        anomalies: { type: array }
+        audit_trail: { type: array }
+        recommendations: { type: array }
+    errors: { type: array }

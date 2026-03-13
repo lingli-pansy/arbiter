@@ -46,10 +46,11 @@ class Momentum20d(Strategy):
         close_now = self._close_history[-1]
         close_past = self._close_history[0]
         momentum_positive = close_now > close_past
-        # NT Portfolio API (TICKET_0005): position_exists 替代已废弃的 position()
-        position_exists = self.portfolio.position_exists(self._instrument_id)
+        # NT 1.224.0 Portfolio API (TICKET_20260314_003): net_position 替代不存在的 position_exists
+        net_pos = self.portfolio.net_position(self._instrument_id)
+        position_exists = net_pos is not None and net_pos != 0
         position = None
-        if position_exists and self.cache:
+        if position_exists:
             pos_list = self.cache.positions(instrument_id=self._instrument_id)
             position = pos_list[0] if pos_list else None
         if self.order_factory is None:

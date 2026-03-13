@@ -1,0 +1,71 @@
+# Contract for analyze_slippage
+# TICKET_20260314_008; Source: TASK_0017
+
+name: analyze_slippage
+description: 分析订单执行后的滑点情况，生成滑点报告
+
+input:
+  execution_report:
+    type: object
+    required: true
+    description: simulate_execution 的输出 execution_report，或完整输出（自动提取）
+    properties:
+      report_id: { type: string }
+      plan_id: { type: string }
+      orders:
+        type: array
+        items:
+          type: object
+          properties:
+            order_id: { type: string }
+            symbol: { type: string }
+            side: { type: string, enum: [BUY, SELL] }
+            quantity: { type: integer }
+            filled_qty: { type: integer }
+            avg_fill_price: { type: number }
+            status: { type: string }
+            slippage: { type: number }
+      summary:
+        type: object
+        properties:
+          total_orders: { type: integer }
+          total_slippage: { type: number }
+  analysis_config:
+    type: object
+    required: false
+    description: 分析配置
+    properties:
+      high_slippage_threshold:
+        type: number
+        default: 5.0
+        description: 高滑点阈值（美元）
+      group_by_symbol:
+        type: boolean
+        default: true
+      include_rejected:
+        type: boolean
+        default: false
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    slippage_report:
+      type: object
+      properties:
+        report_id: { type: string }
+        source_execution_report: { type: string }
+        analyzed_at: { type: string }
+        summary:
+          type: object
+          properties:
+            total_orders: { type: integer }
+            analyzed_orders: { type: integer }
+            total_slippage: { type: number }
+            avg_slippage_per_order: { type: number }
+            max_slippage: { type: number }
+            max_slippage_symbol: { type: string }
+        by_symbol: { type: array }
+        by_side: { type: object }
+        high_slippage_orders: { type: array }
+    errors: { type: array }
