@@ -60,7 +60,19 @@ output:
         account_summary: {}
         positions: {}
         order_fills: {}
-        metrics: {}
+        metrics:
+          type: object
+          description: 结构化回测指标 (TICKET_0006)
+          properties:
+            sharpe_ratio: { type: number, description: 年化夏普比率 }
+            max_drawdown_pct: { type: number, description: 最大回撤 % }
+            cagr_pct: { type: number, description: 年化收益率 % }
+            win_rate_pct: { type: number, description: 胜率 % }
+            avg_trade_pnl: { type: number, description: 平均单笔盈亏 }
+            total_trades: { type: integer, description: 总交易次数 }
+            profit_factor: { type: number, description: 盈亏比 }
+            calmar_ratio: { type: number, description: Calmar 比率 }
+            volatility_pct: { type: number, description: 年化波动率 % }
     errors:
       type: array
     meta:

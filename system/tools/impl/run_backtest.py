@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import sys
 
@@ -16,6 +17,11 @@ import sys
 logging.getLogger("nautilus_trader").setLevel(logging.WARNING)
 from datetime import datetime, timezone
 from decimal import Decimal
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 # 确保 impl 在 path 中
 _impl_dir = os.path.dirname(os.path.abspath(__file__))
@@ -29,6 +35,95 @@ logging.getLogger().setLevel(logging.WARNING)
 
 # Venue 标准化: convert_bars_to_nt 用 NASDAQ/NYSE，NT 需要 XNAS/XNYS
 VENUE_TO_NT = {"NASDAQ": "XNAS", "NYSE": "XNYS", "ARCA": "ARCA", "UNKNOWN": "XNAS"}
+
+
+def _calculate_metrics(
+    account_summary, order_fills, positions, starting_balance: float = 1_000_000.0
+) -> dict:
+    """从 NT report DataFrames 计算结构化回测指标 (TICKET_0006)"""
+    metrics: dict = {
+        "sharpe_ratio": None,
+        "max_drawdown_pct": None,
+        "cagr_pct": None,
+        "win_rate_pct": None,
+        "avg_trade_pnl": None,
+        "total_trades": 0,
+        "profit_factor": None,
+        "calmar_ratio": None,
+        "volatility_pct": None,
+    }
+    if pd is None:
+        return metrics
+
+    # 从 account_summary 提取 equity curve
+    equity = None
+    if hasattr(account_summary, "columns") and "total" in account_summary.columns:
+        equity = pd.to_numeric(account_summary["total"], errors="coerce").dropna()
+    if equity is None or len(equity) < 2:
+        return metrics
+
+    # Total trades
+    if hasattr(order_fills, "index") and len(order_fills) > 0:
+        metrics["total_trades"] = int(len(order_fills))
+    elif hasattr(positions, "columns") and hasattr(positions, "index") and len(positions) > 0:
+        if "ts_closed" in positions.columns:
+            closed = positions[positions["ts_closed"].notna()]
+            metrics["total_trades"] = int(len(closed))
+        else:
+            metrics["total_trades"] = int(len(positions))
+
+    # Returns & Sharpe
+    returns = equity.pct_change().dropna()
+    if len(returns) > 0 and returns.std() > 0:
+        ann_factor = math.sqrt(252)  # 日频
+        metrics["sharpe_ratio"] = round(float(returns.mean() / returns.std() * ann_factor), 4)
+    if len(returns) > 0:
+        metrics["volatility_pct"] = round(float(returns.std() * math.sqrt(252) * 100), 2)
+
+    # Max Drawdown
+    cummax = equity.cummax()
+    dd = (equity - cummax) / cummax.replace(0, 1)
+    if len(dd) > 0:
+        metrics["max_drawdown_pct"] = round(float(dd.min() * 100), 2)
+
+    # CAGR
+    start_val = float(equity.iloc[0])
+    end_val = float(equity.iloc[-1])
+    if start_val > 0 and len(equity) > 1:
+        try:
+            delta = equity.index[-1] - equity.index[0]
+            days = delta.total_seconds() / 86400
+        except Exception:
+            days = float(len(equity))
+        years = max(days / 365.25, 1 / 365.25)
+        cagr = (end_val / start_val) ** (1 / years) - 1
+        metrics["cagr_pct"] = round(float(cagr * 100), 2)
+
+    # Calmar (CAGR / |MaxDD|)
+    if metrics["cagr_pct"] is not None and metrics["max_drawdown_pct"] is not None and metrics["max_drawdown_pct"] != 0:
+        metrics["calmar_ratio"] = round(metrics["cagr_pct"] / abs(metrics["max_drawdown_pct"]), 4)
+
+    # Win rate, avg PnL, profit factor (from positions or order_fills)
+    pnl_col = None
+    if hasattr(positions, "columns"):
+        for c in ("realized_pnl", "pnl", "realized_pnl_settled"):
+            if c in positions.columns:
+                pnl_col = c
+                break
+    if pnl_col and len(positions) > 0:
+        pnls = pd.to_numeric(positions[pnl_col], errors="coerce").dropna()
+        if len(pnls) > 0:
+            wins = (pnls > 0).sum()
+            metrics["win_rate_pct"] = round(float(wins / len(pnls) * 100), 2)
+            metrics["avg_trade_pnl"] = round(float(pnls.mean()), 2)
+            gross_profit = pnls[pnls > 0].sum()
+            gross_loss = abs(pnls[pnls < 0].sum())
+            if gross_loss > 0:
+                metrics["profit_factor"] = round(float(gross_profit / gross_loss), 4)
+            else:
+                metrics["profit_factor"] = float("inf") if gross_profit > 0 else None
+
+    return metrics
 
 
 def _normalize_bar_type(bar_type: str) -> str:
@@ -226,6 +321,16 @@ def _run_engine_impl(nt_bars_list: list, strategy_id: str, symbols: list[str], c
         report["positions"] = engine.trader.generate_positions_report()
     except Exception as e:
         report["positions"] = str(e)
+
+    # TICKET_0006: 计算结构化回测指标
+    try:
+        report["metrics"] = _calculate_metrics(
+            report.get("account_summary"),
+            report.get("order_fills"),
+            report.get("positions"),
+        )
+    except Exception:
+        report["metrics"] = {}
 
     engine.dispose()
     return report

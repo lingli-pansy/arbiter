@@ -96,3 +96,8 @@ def test_contract_output_structure() -> None:
     assert out["meta"]["status"] in ("completed", "failed")
     report = out.get("report", {})
     assert "account_summary" in report or "order_fills" in report or "positions" in report
+    # TICKET_0006: metrics 字段存在且为结构化对象
+    metrics = report.get("metrics", {})
+    assert isinstance(metrics, dict)
+    for key in ("sharpe_ratio", "max_drawdown_pct", "cagr_pct", "total_trades"):
+        assert key in metrics
