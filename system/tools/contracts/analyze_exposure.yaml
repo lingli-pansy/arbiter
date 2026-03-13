@@ -1,0 +1,51 @@
+# Contract for analyze_exposure (TICKET_0009)
+# 分析组合风险暴露：行业、集中度
+
+name: analyze_exposure
+description: 分析组合的风险暴露，包括行业分布、集中度指标
+
+input:
+  portfolio:
+    type: object
+    required: false
+    description: get_portfolio 输出或含 assets 的组合对象
+  portfolio_id:
+    type: string
+    required: false
+    description: 组合标识，从 system/state/portfolios/ 加载
+  analysis_type:
+    type: array
+    required: false
+    default: ["sector", "concentration"]
+    items:
+      type: string
+      enum: ["sector", "concentration", "all"]
+    description: 分析类型
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    exposure:
+      type: object
+      properties:
+        sector:
+          type: object
+          properties:
+            breakdown:
+              type: array
+              items:
+                type: object
+                properties:
+                  sector: { type: string }
+                  weight: { type: number }
+                  symbols: { type: array }
+            concentration_risk: { type: string }
+        concentration:
+          type: object
+          properties:
+            max_position: { type: number }
+            top_3_weight: { type: number }
+            hhi: { type: number }
+            effective_positions: { type: number }
+    errors: { type: array }

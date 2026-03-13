@@ -37,3 +37,8 @@ tools:
     contract: contracts/get_portfolio.yaml
     impl: impl/get_portfolio.py
     description: 读取已持久化的模型组合
+  analyze_exposure:
+    status: active
+    contract: contracts/analyze_exposure.yaml
+    impl: impl/analyze_exposure.py
+    description: 分析组合风险暴露（行业、集中度）
