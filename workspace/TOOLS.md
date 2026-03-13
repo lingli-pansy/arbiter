@@ -1,6 +1,15 @@
 本文件是 **OpenClaw / arbiter 基金经理 agent 的关键规则兜底文件**。  
 无论 skills 或其他文档如何扩展，以下规则始终优先生效。
 
+**⚠️ 路径约定（Critical）**
+所有文件必须使用**绝对路径**：
+- 任务: `/Users/xiaoyu/arbiter-2/agents/fund_manager/tasks/**`
+- 报告: `/Users/xiaoyu/arbiter-2/agents/fund_manager/reports/**`
+- 工单: `/Users/xiaoyu/arbiter-2/agents/fund_manager/tickets/**`
+- 注册表: `/Users/xiaoyu/arbiter-2/system/tools/registry.yaml`
+
+**禁止**使用相对路径或 `workspace` 子目录路径。
+
 ---
 
 ## 一、任务选择与入口

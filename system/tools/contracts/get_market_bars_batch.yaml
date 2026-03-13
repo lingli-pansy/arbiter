@@ -1,5 +1,5 @@
 # Contract for get_market_bars_batch
-# TICKET_0001; Source: TASK_0001 (Initial Watchlist Review)
+# TICKET_20250314_001; Source: TASK_0001D (IB data path validation)
 
 name: get_market_bars_batch
 description: 批量获取多标的市场行情数据（OHLCV）
@@ -25,12 +25,17 @@ input:
     description: K线周期
     default: "1d"
     enum: ["1m", "5m", "15m", "1h", "4h", "1d"]
-  provider:
+  source:
     type: string
     required: false
     description: 数据源提供商
     default: "yahoo"
-    enum: ["yahoo", "ibkr", "polygon"]
+    enum: ["yahoo", "ib", "polygon", "alpaca"]
+  provider:
+    type: string
+    required: false
+    description: 兼容参数，已弃用，请使用 source
+    deprecated: true
 
 output:
   type: object
@@ -65,4 +70,6 @@ output:
         requested_symbols: { type: integer }
         returned_symbols: { type: integer }
         timeframe: { type: string }
-        provider: { type: string }
+        source: { type: string }
+        latency_ms: { type: integer, description: 查询耗时(毫秒) }
+        data_quality_score: { type: number, description: 数据质量评分(0-1) }

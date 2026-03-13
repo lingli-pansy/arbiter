@@ -86,11 +86,13 @@ report 写作要求：
   - `arbiter-dev` 绑定到本地开发仓库，用于 capability validation 与迭代开发。
 
 **工作目录与路径约定（由 `openclaw.json` 中 env 提供）：**
-- `ARBITER_ROOT = .`（本仓库根目录）。
-- `ARBITER_TASKS_DIR = ./agents/fund_manager/tasks`
-- `ARBITER_TICKETS_DIR = ./agents/fund_manager/tickets`
-- `ARBITER_REPORTS_DIR = ./agents/fund_manager/reports`
-- `ARBITER_REGISTRY = ./system/tools/registry.yaml`
+- `ARBITER_ROOT = /Users/xiaoyu/arbiter-2`（本仓库根目录，注意不是 workspace 子目录）
+- `ARBITER_TASKS_DIR = /Users/xiaoyu/arbiter-2/agents/fund_manager/tasks`
+- `ARBITER_TICKETS_DIR = /Users/xiaoyu/arbiter-2/agents/fund_manager/tickets`
+- `ARBITER_REPORTS_DIR = /Users/xiaoyu/arbiter-2/agents/fund_manager/reports`
+- `ARBITER_REGISTRY = /Users/xiaoyu/arbiter-2/system/tools/registry.yaml`
+
+**⚠️ 重要路径警告**: 所有文件操作必须使用绝对路径 `/Users/xiaoyu/arbiter-2/agents/**`，严禁写入 `/Users/xiaoyu/arbiter-2/workspace/agents/**`（该路径已废弃）。
 
 **职责与行为与 Fund Manager (Dev) 一致：**
 - 仍然只通过 `system/tools/registry.yaml` 中 `status: active` 的工具完成任务；

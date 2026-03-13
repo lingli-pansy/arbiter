@@ -4,6 +4,27 @@
 
 ---
 
+## 零、路径约定（Critical）
+
+**仓库根目录**: `/Users/xiaoyu/arbiter-2`
+
+所有任务、报告、工单必须写入以下**绝对路径**，严禁写入 `workspace` 子目录：
+
+| 类型 | 正确路径 | 错误路径（已废弃） |
+|------|----------|-------------------|
+| 待办任务 | `/Users/xiaoyu/arbiter-2/agents/fund_manager/tasks/pending/` | `~/arbiter-2/workspace/agents/fund_manager/tasks/pending/` |
+| 执行中任务 | `/Users/xiaoyu/arbiter-2/agents/fund_manager/tasks/running/` | `~/arbiter-2/workspace/...` |
+| 已完成任务 | `/Users/xiaoyu/arbiter-2/agents/fund_manager/tasks/done/` | `~/arbiter-2/workspace/...` |
+| 执行报告 | `/Users/xiaoyu/arbiter-2/agents/fund_manager/reports/task_runs/` | `~/arbiter-2/workspace/...` |
+| 能力验收 | `/Users/xiaoyu/arbiter-2/agents/fund_manager/reports/capability_validation/` | `~/arbiter-2/workspace/...` |
+| Open Tickets | `/Users/xiaoyu/arbiter-2/agents/fund_manager/tickets/open/` | `~/arbiter-2/workspace/...` |
+| 已完成 Tickets | `/Users/xiaoyu/arbiter-2/agents/fund_manager/tickets/done/` | `~/arbiter-2/workspace/...` |
+| 工具注册表 | `/Users/xiaoyu/arbiter-2/system/tools/registry.yaml` | `~/arbiter-2/workspace/system/tools/...` |
+
+**注意**: 旧路径 `/Users/xiaoyu/arbiter-2/workspace/agents/**` 已废弃，相关文件已合并到正确路径。所有未来操作必须使用绝对路径 `/Users/xiaoyu/arbiter-2/agents/**`。
+
+---
+
 ## 一、文档驱动开发（Doc-Driven Development）
 
 - **一切以文档为入口**：  
