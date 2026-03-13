@@ -47,3 +47,8 @@ tools:
     contract: contracts/simulate_rebalance.yaml
     impl: impl/simulate_rebalance.py
     description: 模拟组合调仓，生成调仓建议
+  calculate_portfolio_performance:
+    status: active
+    contract: contracts/calculate_portfolio_performance.yaml
+    impl: impl/calculate_portfolio_performance.py
+    description: 计算组合表现指标（收益、回撤、波动率、夏普、基准对比）

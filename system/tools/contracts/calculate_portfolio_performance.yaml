@@ -1,0 +1,80 @@
+# Contract for calculate_portfolio_performance (TICKET_0011)
+# 计算组合表现指标（收益、回撤、波动率等）
+
+name: calculate_portfolio_performance
+description: 计算组合表现指标（收益、回撤、波动率、夏普比率、基准对比）
+
+input:
+  portfolio_id:
+    type: string
+    required: false
+    description: 组合标识，从 system/state/portfolios/ 加载
+  portfolio:
+    type: object
+    required: false
+    description: 组合对象（含 assets、initial_capital）
+  market_data:
+    type: object
+    required: false
+    description: get_market_bars_batch 格式数据，缺省时自动拉取
+  start_date:
+    type: string
+    required: false
+    description: 开始日期（YYYY-MM-DD），缺省用 portfolio.created_at
+  end_date:
+    type: string
+    required: false
+    description: 结束日期（YYYY-MM-DD），缺省用今日
+  benchmark:
+    type: string
+    required: false
+    default: "SPY"
+    description: 基准标的（如 SPY、QQQ）
+  include_metrics:
+    type: array
+    required: false
+    items: { type: string }
+    description: 可选，默认全部 ["returns", "drawdown", "volatility", "sharpe", "benchmark", "all"]
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    performance:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            start: { type: string }
+            end: { type: string }
+            days: { type: integer }
+        returns:
+          type: object
+          properties:
+            total_return_pct: { type: number }
+            cagr_pct: { type: number }
+        drawdown:
+          type: object
+          properties:
+            max_drawdown_pct: { type: number }
+            max_drawdown_date: { type: string }
+            current_drawdown_pct: { type: number }
+            avg_drawdown_pct: { type: number }
+        risk:
+          type: object
+          properties:
+            volatility_annual_pct: { type: number }
+            sharpe_ratio: { type: number }
+            sortino_ratio: { type: number }
+            calmar_ratio: { type: number }
+        benchmark:
+          type: object
+          properties:
+            symbol: { type: string }
+            benchmark_return_pct: { type: number }
+            alpha: { type: number }
+            beta: { type: number }
+            tracking_error: { type: number }
+            information_ratio: { type: number }
+    errors: { type: array }
