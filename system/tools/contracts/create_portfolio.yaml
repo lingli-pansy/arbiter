@@ -1,0 +1,51 @@
+# Contract for create_portfolio (TICKET_0008)
+# 创建模型组合并持久化到 system/state/portfolios/
+
+name: create_portfolio
+description: 创建模型组合并持久化到系统状态
+
+input:
+  portfolio_id:
+    type: string
+    required: true
+    description: 组合标识符
+  name:
+    type: string
+    required: true
+    description: 组合名称
+  assets:
+    type: array
+    required: true
+    description: 资产列表，权重总和须为 1.0
+    items:
+      type: object
+      properties:
+        symbol: { type: string }
+        weight: { type: number }
+  initial_capital:
+    type: number
+    required: false
+    default: 100000
+  strategy:
+    type: string
+    required: false
+    description: 关联策略ID
+  notes:
+    type: string
+    required: false
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    portfolio:
+      type: object
+      properties:
+        portfolio_id: { type: string }
+        name: { type: string }
+        assets: { type: array }
+        total_weight: { type: number }
+        created_at: { type: string }
+        state_path: { type: string }
+        status: { type: string }
+    errors: { type: array }

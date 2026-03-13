@@ -1,0 +1,21 @@
+# Contract for get_portfolio (TICKET_0008)
+# 从 system/state/portfolios/ 读取模型组合
+
+name: get_portfolio
+description: 读取已持久化的模型组合
+
+input:
+  portfolio_id:
+    type: string
+    required: true
+    description: 组合标识符
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    portfolio:
+      type: object
+      nullable: true
+      description: 组合数据，未找到时为 null
+    errors: { type: array }

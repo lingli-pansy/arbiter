@@ -27,3 +27,13 @@ tools:
     contract: contracts/run_backtest.yaml
     impl: impl/run_backtest.py
     description: 执行 NautilusTrader 回测，输入为 convert_bars_to_nt 格式
+  create_portfolio:
+    status: active
+    contract: contracts/create_portfolio.yaml
+    impl: impl/create_portfolio.py
+    description: 创建模型组合并持久化到 system/state/portfolios/
+  get_portfolio:
+    status: active
+    contract: contracts/get_portfolio.yaml
+    impl: impl/get_portfolio.py
+    description: 读取已持久化的模型组合
