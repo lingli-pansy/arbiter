@@ -1,0 +1,50 @@
+{
+  "watchlist_id": "default",
+  "name": "Default Watchlist",
+  "created_at": "2026-03-13T17:23:25Z",
+  "updated_at": "2026-03-13T17:23:25Z",
+  "symbols": [
+    {
+      "symbol": "AAPL",
+      "added_at": "2026-03-13T17:23:25Z",
+      "notes": "",
+      "alerts": []
+    },
+    {
+      "symbol": "MSFT",
+      "added_at": "2026-03-13T17:23:25Z",
+      "notes": "",
+      "alerts": []
+    },
+    {
+      "symbol": "NVDA",
+      "added_at": "2026-03-13T17:23:25Z",
+      "notes": "",
+      "alerts": []
+    },
+    {
+      "symbol": "GOOGL",
+      "added_at": "2026-03-13T17:23:25Z",
+      "notes": "",
+      "alerts": []
+    },
+    {
+      "symbol": "AMZN",
+      "added_at": "2026-03-13T17:23:25Z",
+      "notes": "",
+      "alerts": []
+    },
+    {
+      "symbol": "META",
+      "added_at": "2026-03-13T17:23:25Z",
+      "notes": "",
+      "alerts": []
+    },
+    {
+      "symbol": "TSLA",
+      "added_at": "2026-03-13T17:23:25Z",
+      "notes": "",
+      "alerts": []
+    }
+  ]
+}

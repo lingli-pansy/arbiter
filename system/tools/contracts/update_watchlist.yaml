@@ -1,0 +1,35 @@
+# Contract for update_watchlist (TICKET_0012)
+# 更新观察列表（添加/移除 symbol，创建/删除）
+
+name: update_watchlist
+description: 更新观察列表，支持 add/remove/create/delete
+
+input:
+  watchlist_id:
+    type: string
+    required: false
+    default: "default"
+    description: 观察列表 ID
+  action:
+    type: string
+    required: true
+    enum: ["add", "remove", "create", "delete"]
+    description: add=添加symbol, remove=移除, create=新建, delete=删除
+  symbols:
+    type: array
+    required: false
+    items: { type: string }
+    description: 要添加/移除的 symbol 列表
+  name:
+    type: string
+    required: false
+    description: 观察列表名称（create 时）
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    watchlist:
+      type: object
+      nullable: true
+    errors: { type: array }

@@ -52,3 +52,18 @@ tools:
     contract: contracts/calculate_portfolio_performance.yaml
     impl: impl/calculate_portfolio_performance.py
     description: 计算组合表现指标（收益、回撤、波动率、夏普、基准对比）
+  get_watchlist:
+    status: active
+    contract: contracts/get_watchlist.yaml
+    impl: impl/get_watchlist.py
+    description: 获取观察列表，可选包含行情数据
+  update_watchlist:
+    status: active
+    contract: contracts/update_watchlist.yaml
+    impl: impl/update_watchlist.py
+    description: 更新观察列表（添加/移除 symbol，创建/删除）
+  get_news_digest:
+    status: active
+    contract: contracts/get_news_digest.yaml
+    impl: impl/get_news_digest.py
+    description: 获取新闻并生成摘要（Yahoo Finance）

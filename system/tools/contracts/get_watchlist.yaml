@@ -1,0 +1,50 @@
+# Contract for get_watchlist (TICKET_0012)
+# 获取观察列表及其可选行情数据
+
+name: get_watchlist
+description: 获取观察列表，可选包含行情数据
+
+input:
+  watchlist_id:
+    type: string
+    required: false
+    default: "default"
+    description: 观察列表 ID
+  include_quotes:
+    type: boolean
+    required: false
+    default: true
+    description: 是否包含行情数据（调用 get_market_bars_batch）
+  lookback_days:
+    type: integer
+    required: false
+    default: 5
+    description: 行情历史天数
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    watchlist:
+      type: object
+      nullable: true
+      properties:
+        watchlist_id: { type: string }
+        name: { type: string }
+        created_at: { type: string }
+        updated_at: { type: string }
+        symbols:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol: { type: string }
+              added_at: { type: string }
+              notes: { type: string }
+              alerts: { type: array }
+        quotes:
+          type: object
+          additionalProperties:
+            type: object
+          description: symbol -> {close, open, volume}
+    errors: { type: array }

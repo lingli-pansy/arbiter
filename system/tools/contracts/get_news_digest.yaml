@@ -1,0 +1,70 @@
+# Contract for get_news_digest (TICKET_0013)
+# 获取新闻并生成摘要
+
+name: get_news_digest
+description: 获取新闻并生成摘要，使用 Yahoo Finance 数据
+
+input:
+  symbols:
+    type: array
+    required: false
+    items: { type: string }
+    description: 标的列表，缺省 SPY
+  sectors:
+    type: array
+    required: false
+    items: { type: string }
+    description: 行业列表（MVP 暂未实现）
+  themes:
+    type: array
+    required: false
+    items: { type: string }
+    description: 主题（MVP 暂未实现）
+  date_range:
+    type: string
+    required: false
+    default: "1d"
+    enum: ["1d", "3d", "7d", "30d"]
+    description: 时间范围
+  max_articles:
+    type: integer
+    required: false
+    default: 10
+    description: 最大文章数
+  include_sentiment:
+    type: boolean
+    required: false
+    default: false
+    description: 是否包含简单情感分析
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    digest:
+      type: object
+      properties:
+        query:
+          type: object
+          properties:
+            symbols: { type: array }
+            date_range: { type: string }
+            total_articles: { type: integer }
+        summary: { type: string }
+        articles:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              source: { type: string }
+              published_at: { type: string }
+              url: { type: string }
+              symbols: { type: array }
+              summary: { type: string }
+              sentiment: { type: string }
+        by_symbol:
+          type: object
+          additionalProperties:
+            type: array
+    errors: { type: array }
