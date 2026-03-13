@@ -1,0 +1,60 @@
+# Contract for simulate_rebalance (TICKET_0010)
+# 模拟组合调仓，生成调仓建议
+
+name: simulate_rebalance
+description: 模拟组合调仓，计算调仓差额并生成交易建议
+
+input:
+  portfolio_id:
+    type: string
+    required: false
+    description: 组合标识，从 system/state/portfolios/ 加载
+  portfolio:
+    type: object
+    required: false
+    description: 当前组合（含 assets）
+  target_weights:
+    type: object
+    required: true
+    properties:
+      type:
+        type: string
+        enum: ["equal", "custom"]
+        description: equal=等权, custom=自定义
+      weights:
+        type: object
+        additionalProperties: { type: number }
+        description: 自定义权重（type=custom 时）
+  market_prices:
+    type: object
+    required: false
+    additionalProperties: { type: number }
+    description: 当前价格，用于 estimated_shares
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    rebalance:
+      type: object
+      properties:
+        current_weights: {}
+        target_weights: {}
+        differences: {}
+        trades:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol: { type: string }
+              action: { type: string }
+              current_weight: { type: number }
+              target_weight: { type: number }
+              delta_weight: { type: number }
+              estimated_shares: { type: number }
+              estimated_value: { type: number }
+        cash_required: { type: number }
+        cash_generated: { type: number }
+        net_cash_flow: { type: number }
+        expected_turnover: { type: number }
+    errors: { type: array }

@@ -1,6 +1,6 @@
 # TICKET_0005: Fix Momentum20d Strategy Portfolio API
 
-**Status:** open  
+**Status:** done  
 **Created:** 2026-03-13  
 **Source Task:** TASK_0008B (2-year historical momentum backtest)  
 **Blocking Issue:** `unstable_error_surface`
@@ -62,10 +62,12 @@ elif not momentum_positive and position_exists:
 
 ## Acceptance Criteria
 
-1. [ ] 策略代码修复后不再抛出 AttributeError
-2. [ ] 回测能正常生成订单
-3. [ ] 回测能正常生成持仓
-4. [ ] 2年历史数据回测能完整运行
+1. [x] 策略代码修复后不再抛出 AttributeError
+2. [x] 回测能正常生成订单
+3. [x] 回测能正常生成持仓
+4. [x] 2年历史数据回测能完整运行
+
+**Completed:** 2026-03-14
 
 ## Test Case
 

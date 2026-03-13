@@ -46,13 +46,15 @@ class Momentum20d(Strategy):
         close_now = self._close_history[-1]
         close_past = self._close_history[0]
         momentum_positive = close_now > close_past
-        # NT Portfolio API: net_position 返回 Decimal，positions() 返回 Position 列表 (TICKET_0005)
-        net_qty = self.portfolio.net_position(self._instrument_id)
-        positions = self.cache.positions(instrument_id=self._instrument_id) if self.cache else []
-        position = positions[0] if positions else None
+        # NT Portfolio API (TICKET_0005): position_exists 替代已废弃的 position()
+        position_exists = self.portfolio.position_exists(self._instrument_id)
+        position = None
+        if position_exists and self.cache:
+            pos_list = self.cache.positions(instrument_id=self._instrument_id)
+            position = pos_list[0] if pos_list else None
         if self.order_factory is None:
             return
-        if momentum_positive and (net_qty is None or net_qty <= 0):
+        if momentum_positive and not position_exists:
             try:
                 order = self.order_factory.market(
                     instrument_id=self._instrument_id,
@@ -62,8 +64,10 @@ class Momentum20d(Strategy):
                 self.submit_order(order)
             except Exception:
                 pass
-        elif not momentum_positive and position is not None and net_qty is not None and net_qty > 0:
+        elif not momentum_positive and position_exists and position is not None:
             try:
-                self.close_position(position)
+                qty = position.quantity.as_decimal() if hasattr(position, "quantity") else 0
+                if qty > 0:
+                    self.close_position(position)
             except Exception:
                 pass

@@ -49,12 +49,15 @@ class MeanReversion(Strategy):
         if ma <= 0:
             return
         deviation = float((close_now - ma) / ma)
-        net_qty = self.portfolio.net_position(self._instrument_id)
-        positions = self.cache.positions(instrument_id=self._instrument_id) if self.cache else []
-        position = positions[0] if positions else None
+        # NT Portfolio API (TICKET_0005): position_exists 替代已废弃的 position()
+        position_exists = self.portfolio.position_exists(self._instrument_id)
+        position = None
+        if position_exists and self.cache:
+            pos_list = self.cache.positions(instrument_id=self._instrument_id)
+            position = pos_list[0] if pos_list else None
         if self.order_factory is None:
             return
-        if deviation < -self._threshold and (net_qty is None or net_qty <= 0):
+        if deviation < -self._threshold and not position_exists:
             try:
                 order = self.order_factory.market(
                     instrument_id=self._instrument_id,
@@ -64,8 +67,10 @@ class MeanReversion(Strategy):
                 self.submit_order(order)
             except Exception:
                 pass
-        elif deviation >= 0 and position is not None and net_qty is not None and net_qty > 0:
+        elif deviation >= 0 and position_exists and position is not None:
             try:
-                self.close_position(position)
+                qty = position.quantity.as_decimal() if hasattr(position, "quantity") else 0
+                if qty > 0:
+                    self.close_position(position)
             except Exception:
                 pass

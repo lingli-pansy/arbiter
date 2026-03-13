@@ -42,3 +42,8 @@ tools:
     contract: contracts/analyze_exposure.yaml
     impl: impl/analyze_exposure.py
     description: 分析组合风险暴露（行业、集中度）
+  simulate_rebalance:
+    status: active
+    contract: contracts/simulate_rebalance.yaml
+    impl: impl/simulate_rebalance.py
+    description: 模拟组合调仓，生成调仓建议
