@@ -1,0 +1,143 @@
+tools:
+  # Market Data
+  get_market_bars_batch:
+    status: active
+    category: market_data
+    description: Batch fetch market bars for multiple symbols
+    inputs:
+      - symbols: list[string]
+      - start_date: string
+      - end_date: string
+      - timeframe: string
+    outputs:
+      - bars_by_symbol: dict
+
+  get_nt_bar_schema:
+    status: active
+    category: market_data
+    description: Get NautilusTrader bar schema definition
+    inputs: []
+    outputs:
+      - schema: object
+
+  get_symbol_venue:
+    status: active
+    category: market_data
+    description: Map symbol to trading venue
+    inputs:
+      - symbol: string
+    outputs:
+      - venue: string
+      - exchange: string
+
+  convert_bars_to_nt:
+    status: active
+    category: market_data
+    description: Convert bars to NautilusTrader format
+    inputs:
+      - bars: list
+    outputs:
+      - nt_bars: list
+
+  # Research & Analysis
+  get_watchlist:
+    status: active
+    category: portfolio
+    description: Get watchlist with optional quotes
+    inputs:
+      - watchlist_id: string
+      - include_quotes: boolean
+      - lookback_days: integer
+    outputs:
+      - watchlist: object
+      - quotes: object
+
+  update_watchlist:
+    status: active
+    category: portfolio
+    description: Create, update, or delete watchlist
+    inputs:
+      - action: enum[create, add, remove, delete]
+      - watchlist_id: string
+      - name: string
+      - symbols: list[string]
+    outputs:
+      - success: boolean
+
+  get_news_digest:
+    status: active
+    category: research
+    description: Get news digest for symbols
+    inputs:
+      - symbols: list[string]
+      - days: integer
+      - limit: integer
+    outputs:
+      - articles: list
+      - sentiment_summary: object
+
+  # Backtest
+  run_backtest:
+    status: active
+    category: backtest
+    description: Run strategy backtest
+    inputs:
+      - strategy: string
+      - symbols: list[string]
+      - start_date: string
+      - end_date: string
+    outputs:
+      - results: object
+
+  # Portfolio
+  get_portfolio:
+    status: active
+    category: portfolio
+    description: Get portfolio state
+    inputs:
+      - portfolio_id: string
+    outputs:
+      - portfolio: object
+
+  create_portfolio:
+    status: active
+    category: portfolio
+    description: Create new portfolio
+    inputs:
+      - name: string
+      - symbols: list[string]
+      - weights: list[float]
+    outputs:
+      - portfolio_id: string
+
+  analyze_exposure:
+    status: active
+    category: portfolio
+    description: Analyze portfolio exposure
+    inputs:
+      - portfolio_id: string
+    outputs:
+      - exposure: object
+      - hhi: float
+
+  simulate_rebalance:
+    status: active
+    category: portfolio
+    description: Simulate portfolio rebalancing
+    inputs:
+      - portfolio_id: string
+      - target_weights: dict
+      - constraints: object
+    outputs:
+      - trades: list
+      - projected_portfolio: object
+
+  calculate_portfolio_performance:
+    status: active
+    category: portfolio
+    description: Calculate portfolio performance metrics
+    inputs:
+      - portfolio_id: string
+      - benchmark: string
+    outputs:
+      - performance: object
