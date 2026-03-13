@@ -1,0 +1,24 @@
+# Contract for cancel_order
+# TICKET_20250314_003; Source: TASK_0022 (Paper trading integration test)
+
+name: cancel_order
+description: 撤销订单
+
+input:
+  connection_id:
+    type: string
+    required: true
+    description: connect_broker 返回的连接 ID
+  order_id:
+    type: string
+    required: true
+    description: 订单 ID
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    error_message: { type: string }
+    timestamp: { type: string, format: date-time }
+    order_id: { type: string }
+    status: { type: string, enum: ["cancelled", "rejected", "already_filled"] }

@@ -1,0 +1,22 @@
+# Contract for get_broker_account
+# TICKET_20250314_002; Source: TASK_0021 (Broker execution adapter validation)
+
+name: get_broker_account
+description: 获取券商账户摘要（现金、购买力等）
+
+input:
+  connection_id:
+    type: string
+    required: true
+    description: connect_broker 返回的连接 ID
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    error_message: { type: string }
+    timestamp: { type: string, format: date-time }
+    account_id: { type: string }
+    cash_balance: { type: number }
+    buying_power: { type: number }
+    currency: { type: string }

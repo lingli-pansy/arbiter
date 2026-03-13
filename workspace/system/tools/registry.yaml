@@ -132,12 +132,81 @@ tools:
       - trades: list
       - projected_portfolio: object
 
-  calculate_portfolio_performance:
+  # Execution / Broker
+  connect_broker:
     status: active
-    category: portfolio
-    description: Calculate portfolio performance metrics
+    category: execution
+    description: Connect to broker (IB)
     inputs:
-      - portfolio_id: string
-      - benchmark: string
+      - broker: enum["ib"]
+      - mode: enum["live", "paper"]
+      - timeout_ms: integer
     outputs:
-      - performance: object
+      - connection_id: string
+      - status: string
+      - latency_ms: integer
+
+  get_broker_account:
+    status: active
+    category: execution
+    description: Get broker account summary
+    inputs:
+      - connection_id: string
+    outputs:
+      - account_id: string
+      - cash_balance: float
+      - buying_power: float
+      - currency: string
+
+  get_broker_positions:
+    status: active
+    category: execution
+    description: Get current broker positions
+    inputs:
+      - connection_id: string
+    outputs:
+      - positions: list
+
+  submit_order:
+    status: active
+    category: execution
+    description: Submit order to broker
+    inputs:
+      - connection_id: string
+      - symbol: string
+      - side: enum["BUY", "SELL"]
+      - quantity: float
+      - order_type: enum["MKT", "LMT", "STP"]
+      - limit_price: float
+      - stop_price: float
+    outputs:
+      - order_id: string
+      - status: string
+      - filled_qty: float
+      - avg_fill_price: float
+
+  get_order_status:
+    status: active
+    category: execution
+    description: Get order status
+    inputs:
+      - connection_id: string
+      - order_id: string
+    outputs:
+      - order_id: string
+      - status: string
+      - filled_qty: float
+      - remaining_qty: float
+      - avg_fill_price: float
+      - last_update: string
+
+  cancel_order:
+    status: active
+    category: execution
+    description: Cancel pending order
+    inputs:
+      - connection_id: string
+      - order_id: string
+    outputs:
+      - order_id: string
+      - status: string

@@ -1,0 +1,49 @@
+# Contract for submit_order
+# TICKET_20250314_003; Source: TASK_0022 (Paper trading integration test)
+
+name: submit_order
+description: 提交订单（市价/限价/止损）
+
+input:
+  connection_id:
+    type: string
+    required: true
+    description: connect_broker 返回的连接 ID
+  symbol:
+    type: string
+    required: true
+    description: 标的代码
+  side:
+    type: string
+    required: true
+    enum: ["BUY", "SELL"]
+    description: 买卖方向
+  quantity:
+    type: number
+    required: true
+    description: 数量
+    min: 0.0001
+  order_type:
+    type: string
+    required: true
+    enum: ["MKT", "LMT", "STP"]
+    description: 订单类型
+  limit_price:
+    type: number
+    required: false
+    description: 限价（LMT 时必填）
+  stop_price:
+    type: number
+    required: false
+    description: 止损价（STP 时必填）
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    error_message: { type: string }
+    timestamp: { type: string, format: date-time }
+    order_id: { type: string }
+    status: { type: string, enum: ["submitted", "rejected", "filled"] }
+    filled_qty: { type: number }
+    avg_fill_price: { type: number }

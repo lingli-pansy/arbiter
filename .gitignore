@@ -1,6 +1,8 @@
 .venv/
 .DS_Store
 system/state/portfolios/*.json
+system/state/broker_connections.json
+system/state/broker_orders.json
 *.pyc
 __pycache__/
 .pytest_cache/

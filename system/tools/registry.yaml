@@ -67,3 +67,33 @@ tools:
     contract: contracts/get_news_digest.yaml
     impl: impl/get_news_digest.py
     description: 获取新闻并生成摘要（Yahoo Finance）
+  connect_broker:
+    status: active
+    contract: contracts/connect_broker.yaml
+    impl: impl/connect_broker.py
+    description: 建立券商连接（IB paper/live 模式）
+  get_broker_account:
+    status: active
+    contract: contracts/get_broker_account.yaml
+    impl: impl/get_broker_account.py
+    description: 获取券商账户摘要（现金、购买力）
+  get_broker_positions:
+    status: active
+    contract: contracts/get_broker_positions.yaml
+    impl: impl/get_broker_positions.py
+    description: 获取券商当前持仓列表
+  submit_order:
+    status: active
+    contract: contracts/submit_order.yaml
+    impl: impl/submit_order.py
+    description: 提交订单（市价/限价/止损）
+  get_order_status:
+    status: active
+    contract: contracts/get_order_status.yaml
+    impl: impl/get_order_status.py
+    description: 查询订单状态
+  cancel_order:
+    status: active
+    contract: contracts/cancel_order.yaml
+    impl: impl/cancel_order.py
+    description: 撤销订单

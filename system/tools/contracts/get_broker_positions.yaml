@@ -1,0 +1,28 @@
+# Contract for get_broker_positions
+# TICKET_20250314_002; Source: TASK_0021 (Broker execution adapter validation)
+
+name: get_broker_positions
+description: 获取券商当前持仓列表
+
+input:
+  connection_id:
+    type: string
+    required: true
+    description: connect_broker 返回的连接 ID
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    error_message: { type: string }
+    timestamp: { type: string, format: date-time }
+    positions:
+      type: array
+      items:
+        type: object
+        properties:
+          symbol: { type: string }
+          quantity: { type: number }
+          avg_cost: { type: number }
+          market_price: { type: number }
+          unrealized_pnl: { type: number }

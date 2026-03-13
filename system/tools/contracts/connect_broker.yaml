@@ -1,0 +1,34 @@
+# Contract for connect_broker
+# TICKET_20250314_002; Source: TASK_0021 (Broker execution adapter validation)
+
+name: connect_broker
+description: 建立券商连接（Interactive Brokers），支持 paper/live 模式
+
+input:
+  broker:
+    type: string
+    required: true
+    enum: ["ib"]
+    description: 券商标识
+  mode:
+    type: string
+    required: true
+    enum: ["live", "paper"]
+    description: live=实盘, paper=模拟
+  timeout_ms:
+    type: integer
+    required: false
+    default: 5000
+    description: 连接超时毫秒
+    min: 1000
+    max: 30000
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    error_message: { type: string }
+    timestamp: { type: string, format: date-time }
+    connection_id: { type: string }
+    status: { type: string, enum: ["connected", "failed"] }
+    latency_ms: { type: integer }

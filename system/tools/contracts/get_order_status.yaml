@@ -1,0 +1,28 @@
+# Contract for get_order_status
+# TICKET_20250314_003; Source: TASK_0022 (Paper trading integration test)
+
+name: get_order_status
+description: 查询订单状态
+
+input:
+  connection_id:
+    type: string
+    required: true
+    description: connect_broker 返回的连接 ID
+  order_id:
+    type: string
+    required: true
+    description: 订单 ID
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    error_message: { type: string }
+    timestamp: { type: string, format: date-time }
+    order_id: { type: string }
+    status: { type: string, enum: ["pending", "partial", "filled", "cancelled", "rejected"] }
+    filled_qty: { type: number }
+    remaining_qty: { type: number }
+    avg_fill_price: { type: number }
+    last_update: { type: string, format: date-time }
