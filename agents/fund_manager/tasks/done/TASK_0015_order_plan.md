@@ -30,10 +30,10 @@ Priority
 P2
 
 Status
-pending
+blocked
 
 Blockers
-none
+TICKET_20260314_001 - Missing generate_order_plan tool
 
 Notes
 第一版只需要 paper / simulated order plan，不需要真实下单。

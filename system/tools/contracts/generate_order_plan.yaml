@@ -1,0 +1,75 @@
+# Contract for generate_order_plan
+# TICKET_20260314_001; Source: TASK_0015 (Generate order plan)
+
+name: generate_order_plan
+description: 从 rebalance proposal 生成可执行的订单计划
+
+input:
+  rebalance_proposal:
+    type: object
+    required: true
+    description: simulate_rebalance 的输出对象（或含 trades 的对象）
+    properties:
+      trades:
+        type: array
+        items:
+          type: object
+          properties:
+            symbol: { type: string }
+            action: { type: string }
+            delta_weight: { type: number }
+            estimated_shares: { type: number }
+            estimated_value: { type: number }
+  portfolio_value:
+    type: number
+    required: true
+    description: 当前组合总市值，用于计算实际股数及风险校验
+  execution_strategy:
+    type: string
+    required: false
+    default: market
+    enum: [market, twap, vwap]
+    description: 执行策略
+  risk_limits:
+    type: object
+    required: false
+    description: 风险限制
+    properties:
+      max_order_value: { type: number }
+      max_position_size: { type: number }
+      max_single_order_pct: { type: number }
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    order_plan:
+      type: object
+      properties:
+        plan_id: { type: string }
+        created_at: { type: string }
+        total_orders: { type: integer }
+        total_value: { type: number }
+        orders:
+          type: array
+          items:
+            type: object
+            properties:
+              order_id: { type: string }
+              symbol: { type: string }
+              side: { type: string }
+              order_type: { type: string }
+              quantity: { type: integer }
+              estimated_price: { type: number }
+              estimated_value: { type: number }
+              time_in_force: { type: string }
+              notes: { type: string }
+    validations:
+      type: array
+      items:
+        type: object
+        properties:
+          check: { type: string }
+          passed: { type: boolean }
+          message: { type: string }
+    errors: { type: array }

@@ -47,6 +47,11 @@ tools:
     contract: contracts/simulate_rebalance.yaml
     impl: impl/simulate_rebalance.py
     description: 模拟组合调仓，生成调仓建议
+  generate_order_plan:
+    status: active
+    contract: contracts/generate_order_plan.yaml
+    impl: impl/generate_order_plan.py
+    description: 从 rebalance proposal 生成可执行的订单计划
   calculate_portfolio_performance:
     status: active
     contract: contracts/calculate_portfolio_performance.yaml
