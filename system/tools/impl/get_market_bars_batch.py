@@ -39,29 +39,62 @@ def _parse_input(raw: str) -> dict:
         return {"_error": f"Invalid JSON: {e}"}
 
 
+def _generate_mock_bars(
+    symbols: list[str],
+    start_str: str,
+    end_str: str,
+) -> dict:
+    """生成模拟 OHLCV 数据，格式与真实数据一致。TICKET_20250314_BACKTEST_001_FOLLOWUP_007"""
+    from datetime import datetime, timedelta
+    data: dict = {}
+    base_prices = {"AAPL": 185.0, "MSFT": 405.0, "GOOGL": 140.0, "AMZN": 155.0, "NVDA": 480.0, "META": 335.0, "QQQ": 380.0}
+    try:
+        start_dt = datetime.strptime(start_str, "%Y-%m-%d")
+        end_dt = datetime.strptime(end_str, "%Y-%m-%d")
+    except ValueError:
+        return {}
+    current = start_dt
+    while current <= end_dt:
+        day_str = current.strftime("%Y-%m-%d")
+        if current.weekday() < 5:  # 仅工作日
+            for sym in symbols:
+                base = base_prices.get(sym, 100.0)
+                drift = 0.0002 * (hash(sym + day_str) % 100 - 50)
+                o = base
+                c = o * (1 + drift)
+                h = max(o, c) * 1.005
+                l = min(o, c) * 0.995
+                vol = 40_000_000 + (hash(sym) % 20_000_000)
+                if sym not in data:
+                    data[sym] = []
+                data[sym].append({
+                    "timestamp": day_str + "T16:00:00Z",
+                    "open": round(o, 2),
+                    "high": round(h, 2),
+                    "low": round(l, 2),
+                    "close": round(c, 2),
+                    "volume": int(vol),
+                })
+                base_prices[sym] = c
+        current += timedelta(days=1)
+    return data
+
+
 def _get_source(params: dict) -> tuple[str, str | None]:
     """
     获取数据源，优先使用新的 'source' 参数，兼容旧的 'provider' 参数。
-    返回: (source_value, error_message)
+    返回: (source_value, error_message) — source 为 yahoo/ib 等，不再映射 ib->ibkr
     """
-    # 优先使用新的 source 参数
     if "source" in params:
         source = params["source"]
         if source not in VALID_SOURCES:
             return "", f"source must be one of {VALID_SOURCES}"
-        # 映射 ib 到 yfinance 的 ibkr
-        if source == "ib":
-            return "ibkr", None
         return source, None
-    
-    # 兼容旧的 provider 参数
     if "provider" in params:
         provider = params["provider"]
         if provider not in VALID_PROVIDERS:
             return "", f"provider must be one of {VALID_PROVIDERS}"
-        return provider, None
-    
-    # 默认使用 yahoo
+        return "ib" if provider == "ibkr" else provider, None
     return "yahoo", None
 
 
@@ -74,9 +107,22 @@ def _validate(params: dict) -> str | None:
     for s in symbols:
         if not isinstance(s, str) or not s.strip():
             return "each symbol must be a non-empty string"
-    lookback = params.get("lookback_days", 20)
-    if not isinstance(lookback, int) or not (LOOKBACK_DAYS_MIN <= lookback <= LOOKBACK_DAYS_MAX):
-        return f"lookback_days must be an integer between {LOOKBACK_DAYS_MIN} and {LOOKBACK_DAYS_MAX}"
+    start_date = params.get("start_date")
+    end_date = params.get("end_date")
+    if start_date and end_date:
+        try:
+            sd = datetime.strptime(str(start_date), "%Y-%m-%d")
+            ed = datetime.strptime(str(end_date), "%Y-%m-%d")
+            if sd > ed:
+                return "start_date must be <= end_date"
+            if (ed - sd).days > 2520:  # ~7 years max
+                return "date range must not exceed 2520 days"
+        except ValueError:
+            return "start_date and end_date must be YYYY-MM-DD"
+    else:
+        lookback = params.get("lookback_days", 20)
+        if not isinstance(lookback, int) or not (LOOKBACK_DAYS_MIN <= lookback <= LOOKBACK_DAYS_MAX):
+            return f"lookback_days must be an integer between {LOOKBACK_DAYS_MIN} and {LOOKBACK_DAYS_MAX}"
     tf = params.get("timeframe", "1d")
     if tf not in VALID_TIMEFRAMES:
         return f"timeframe must be one of {VALID_TIMEFRAMES}"
@@ -85,9 +131,8 @@ def _validate(params: dict) -> str | None:
     if error:
         return error
     
-    # 暂时只有 yahoo 已实现
-    if source not in ("yahoo", "ibkr"):
-        return f"source '{source}' is not yet implemented, only 'yahoo' is available"
+    if source not in ("yahoo", "ib"):
+        return f"source '{source}' is not yet implemented, only 'yahoo' and 'ib' are available"
     
     return None
 
@@ -118,14 +163,24 @@ def _calculate_data_quality(data: dict) -> float:
     return valid_points / total_points if total_points > 0 else 0.0
 
 
-def _fetch_yahoo(symbols: list[str], lookback_days: int, timeframe: str) -> tuple[dict, list[dict]]:
+def _fetch_yahoo(
+    symbols: list[str],
+    lookback_days: int,
+    timeframe: str,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> tuple[dict, list[dict]]:
     import yfinance as yf
 
     interval = TIMEFRAME_TO_INTERVAL.get(timeframe, "1d")
-    end = datetime.now(timezone.utc)
-    start = end - timedelta(days=lookback_days)
-    start_str = start.strftime("%Y-%m-%d")
-    end_str = end.strftime("%Y-%m-%d")
+    if start_date and end_date:
+        start_str = start_date
+        end_str = end_date
+    else:
+        end = datetime.now(timezone.utc)
+        start = end - timedelta(days=lookback_days)
+        start_str = start.strftime("%Y-%m-%d")
+        end_str = end.strftime("%Y-%m-%d")
 
     data = {}
     errors = []
@@ -146,10 +201,16 @@ def _fetch_yahoo(symbols: list[str], lookback_days: int, timeframe: str) -> tupl
             if df is None or df.empty:
                 errors.append({"symbol": sym, "error": "No data returned"})
                 continue
+            def _scalar(v):
+                """Unwrap single-element Series to avoid FutureWarning."""
+                if hasattr(v, "iloc") and hasattr(v, "size") and v.size == 1:
+                    return v.iloc[0]
+                return v
+
             def _num(key: str) -> float | None:
                 for k in (key, key.lower(), key.upper()):
                     if k in row.index:
-                        v = row[k]
+                        v = _scalar(row[k])
                         if v is None or (isinstance(v, float) and math.isnan(v)):
                             return None
                         try:
@@ -161,7 +222,7 @@ def _fetch_yahoo(symbols: list[str], lookback_days: int, timeframe: str) -> tupl
             def _vol() -> int:
                 for k in ("Volume", "volume", "VOLUME"):
                     if k in row.index:
-                        v = row[k]
+                        v = _scalar(row[k])
                         if v is None or (isinstance(v, float) and math.isnan(v)):
                             return 0
                         try:
@@ -190,6 +251,39 @@ def _fetch_yahoo(symbols: list[str], lookback_days: int, timeframe: str) -> tupl
     return data, errors
 
 
+def _fetch_ib(
+    symbols: list[str],
+    lookback_days: int,
+    timeframe: str,
+    start_date: str | None,
+    end_date: str | None,
+    connection_id: str | None,
+) -> tuple[dict, list[dict]]:
+    """通过 IB reqHistoricalData 获取 OHLCV。需先 connect_broker。"""
+    import os
+    _impl = os.path.dirname(os.path.abspath(__file__))
+    if _impl not in sys.path:
+        sys.path.insert(0, _impl)
+    from adapters.broker_store import get_connection, get_latest_ib_connection
+    conn = get_connection(connection_id) if connection_id else None
+    if not conn:
+        conn = get_latest_ib_connection()
+    if not conn:
+        return {}, [{"symbol": "", "error": "connection_id required when source=ib; call connect_broker first"}]
+    host = conn.get("host", "127.0.0.1")
+    port = int(conn.get("port", 4002))
+    client_id = int(conn.get("client_id", 1))
+    if start_date and end_date:
+        start_str, end_str = start_date, end_date
+    else:
+        end = datetime.now(timezone.utc)
+        start = end - timedelta(days=lookback_days)
+        start_str = start.strftime("%Y-%m-%d")
+        end_str = end.strftime("%Y-%m-%d")
+    from adapters.ib_historical import get_historical_bars
+    return get_historical_bars(symbols, start_str, end_str, timeframe, host, port, client_id)
+
+
 def main() -> None:
     start_time = time.time()
     
@@ -216,6 +310,34 @@ def main() -> None:
         print(json.dumps(out, ensure_ascii=False))
         sys.exit(1)
 
+    # TICKET_20250314_BACKTEST_001_FOLLOWUP_007: mock_mode 快速返回模拟数据
+    mock_mode = params.get("mock_mode") is True or (
+        __import__("os").environ.get("ARBITER_MOCK_MODE", "").lower() in ("1", "true", "yes")
+    )
+    if mock_mode:
+        syms = params.get("symbols") or ["AAPL", "MSFT", "QQQ"]
+        if isinstance(syms, str):
+            syms = [s.strip() for s in syms.split(",") if s.strip()]
+        start_str = params.get("start_date") or "2024-01-02"
+        end_str = params.get("end_date") or "2024-03-31"
+        data = _generate_mock_bars(syms, start_str, end_str)
+        latency_ms = int((time.time() - start_time) * 1000)
+        out = {
+            "success": True,
+            "data": data,
+            "errors": [],
+            "meta": {
+                "requested_symbols": len(syms),
+                "returned_symbols": len(data),
+                "timeframe": params.get("timeframe", "1d"),
+                "source": "mock",
+                "latency_ms": latency_ms,
+                "data_quality_score": 1.0,
+            },
+        }
+        print(json.dumps(out, ensure_ascii=False))
+        return
+
     err = _validate(params)
     if err:
         out = {
@@ -238,9 +360,23 @@ def main() -> None:
     lookback_days = int(params.get("lookback_days", 20))
     timeframe = params.get("timeframe", "1d")
     source, _ = _get_source(params)
+    start_date = params.get("start_date")
+    end_date = params.get("end_date")
+    connection_id = params.get("connection_id")
 
-    # 目前只支持 yahoo
-    data, errors = _fetch_yahoo(symbols, lookback_days, timeframe)
+    if source == "ib":
+        data, errors = _fetch_ib(
+            symbols, lookback_days, timeframe,
+            start_date=str(start_date) if start_date else None,
+            end_date=str(end_date) if end_date else None,
+            connection_id=connection_id,
+        )
+    else:
+        data, errors = _fetch_yahoo(
+            symbols, lookback_days, timeframe,
+            start_date=str(start_date) if start_date else None,
+            end_date=str(end_date) if end_date else None,
+        )
     returned = len(data)
     
     # 计算延迟和数据质量

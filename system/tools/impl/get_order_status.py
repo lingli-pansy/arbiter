@@ -69,6 +69,7 @@ def main() -> None:
     out = _std_response(
         True,
         order_id=order_id,
+        ib_order_id=o.get("ib_order_id", ""),
         status=o["status"],
         filled_qty=o["filled_qty"],
         remaining_qty=o["remaining_qty"],

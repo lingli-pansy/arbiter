@@ -38,6 +38,13 @@ input:
     required: false
     default: 1
     description: IB API client ID
+  expected_account_id:
+    type: string
+    required: false
+    description: |
+      live 模式：指定要使用的 IB 账户 ID（如 U12345678）。
+      连接时会验证 Gateway 登录的账户与此一致，不一致则拒绝连接。
+      确保实盘交易在指定账户进行。
 
 output:
   type: object

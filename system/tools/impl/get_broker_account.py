@@ -64,14 +64,26 @@ def main() -> None:
         print(json.dumps(out))
         sys.exit(1)
 
-    acc = get_mock_account()
-    out = _std_response(
-        True,
-        account_id=acc["account_id"],
-        cash_balance=acc["cash_balance"],
-        buying_power=acc["buying_power"],
-        currency=acc["currency"],
-    )
+    if conn.get("mode") == "live" and conn.get("account_ids"):
+        # Live 连接返回实际账户（连接时获取的 account_ids）
+        acc_id = conn.get("verified_account_id") or (conn["account_ids"][0] if conn["account_ids"] else "unknown")
+        out = _std_response(
+            True,
+            account_id=acc_id,
+            account_ids=conn.get("account_ids", []),
+            cash_balance=None,  # 需 reqAccountSummary 获取，暂不实现
+            buying_power=None,
+            currency="USD",
+        )
+    else:
+        acc = get_mock_account()
+        out = _std_response(
+            True,
+            account_id=acc["account_id"],
+            cash_balance=acc["cash_balance"],
+            buying_power=acc["buying_power"],
+            currency=acc["currency"],
+        )
     print(json.dumps(out))
 
 

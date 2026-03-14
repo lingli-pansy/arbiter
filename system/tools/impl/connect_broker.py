@@ -6,6 +6,12 @@ TICKET_20250314_002
 """
 from __future__ import annotations
 
+try:
+    import nest_asyncio
+    nest_asyncio.apply()
+except ImportError:
+    pass  # 无 venv 时可能未安装；若出现 asyncio 错误需 pip install nest_asyncio
+
 import json
 import sys
 from datetime import datetime, timezone
@@ -75,19 +81,24 @@ def main() -> None:
 
     if mode == "live":
         host = str(params.get("host", "127.0.0.1"))
-        port = int(params.get("port", 7496))
+        port = int(params.get("port", 4001))  # 4001=Gateway Live, 7496=TWS Live
         client_id = int(params.get("client_id", 1))
+        expected_account_id = (params.get("expected_account_id") or "").strip() or None
         conn_id, latency_ms, err = create_live_connection(
-            broker, host, port, client_id, timeout_ms
+            broker, host, port, client_id, timeout_ms, expected_account_id
         )
         if err:
             out = _std_response(False, error_message=err, status="failed", latency_ms=latency_ms)
         else:
+            from adapters.broker_store import get_connection
+            conn = get_connection(conn_id)
             out = _std_response(
                 True,
                 connection_id=conn_id,
                 status="connected",
                 latency_ms=latency_ms,
+                account_ids=conn.get("account_ids", []),
+                verified_account_id=conn.get("verified_account_id"),
             )
         print(json.dumps(out))
         sys.exit(0 if not err else 1)

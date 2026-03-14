@@ -1,0 +1,85 @@
+# Contract for get_market_cap_ranking
+# TICKET_20250314_BACKTEST_001, TICKET_20250314_BACKTEST_001_ARCH_FIX
+
+name: get_market_cap_ranking
+description: 获取指定日期的市值排名，支持美股市值 Top N；默认通过 IB 获取（符合 MVP 架构）
+
+input:
+  date:
+    type: string
+    required: true
+    description: 排名日期，YYYY-MM-DD
+  source:
+    type: string
+    required: false
+    default: "ib"
+    enum: ["ib", "yahoo", "static"]
+    description: |
+      数据源；ib=Interactive Brokers（默认），yahoo=Yahoo Finance，static=预存快照。
+      当 source=ib 且 IB 返回 10358/10089 时，默认回退到 static（ib_fallback=static）；
+      可设置 ib_fallback=yahoo 回退到 Yahoo。source=static 使用 system/data/market_cap_snapshots.json。
+  ib_fallback:
+    type: string
+    required: false
+    default: "static"
+    enum: ["static", "yahoo"]
+    description: source=ib 且 IB 不可用时回退目标；static=预存快照（默认，不使用 Yahoo），yahoo=Yahoo Finance
+  connection_id:
+    type: string
+    required: false
+    description: IB 连接 ID（connect_broker 返回）；source=ib 时可选，不传则复用最近一次连接
+  market:
+    type: string
+    required: false
+    default: "US"
+    description: 市场，目前仅 US
+  top_n:
+    type: integer
+    required: false
+    default: 5
+    min: 1
+    max: 20
+    description: 取前 N 名
+  min_market_cap:
+    type: number
+    required: false
+    description: 最小市值过滤（百万美元）
+  universe:
+    type: array
+    required: false
+    description: 候选股票池，不传则用默认美股大盘
+  mock_mode:
+    type: boolean
+    required: false
+    default: false
+    description: 使用 Mock 数据进行测试，不调用真实 API；也可通过环境变量 ARBITER_MOCK_MODE=1 启用
+  ib_fallback:
+    type: string
+    required: false
+    default: "static"
+    enum: ["static", "yahoo"]
+    description: 当 source=ib 且 IB 失败（10358/10089）时的回退数据源；static=预存快照（默认），yahoo=Yahoo Finance
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    ranking:
+      type: array
+      items:
+        type: object
+        properties:
+          rank: { type: integer }
+          symbol: { type: string }
+          market_cap: { type: number }
+          market_cap_millions: { type: number }
+    as_of_date: { type: string }
+    source: { type: string, description: 实际使用的数据源 }
+    errors: { type: array }
+    meta:
+      type: object
+      description: TICKET_20250314_003 - 元数据，source=ib 时含 tick165 信息
+      properties:
+        latency_ms: { type: number }
+        tick165_attempted: { type: boolean, description: 是否尝试了 IB Tick 165 }
+        tick165_success: { type: boolean, description: Tick 165 是否成功返回市值 }

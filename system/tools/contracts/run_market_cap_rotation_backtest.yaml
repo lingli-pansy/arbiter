@@ -1,0 +1,62 @@
+# Contract for run_market_cap_rotation_backtest
+# TICKET_20250314_BACKTEST_001
+
+name: run_market_cap_rotation_backtest
+description: 市值 Top N 轮动策略回测（季度调仓、等权、基准对比）
+
+input:
+  start_date:
+    type: string
+    required: true
+    description: 回测开始 YYYY-MM-DD
+  end_date:
+    type: string
+    required: true
+    description: 回测结束 YYYY-MM-DD
+  initial_capital:
+    type: number
+    required: false
+    default: 500000
+    description: 初始资金（美元）
+  cash_pool:
+    type: number
+    required: false
+    default: 50000
+    description: 流动资金池
+  rebalance_frequency:
+    type: string
+    required: false
+    default: quarterly
+    enum: [quarterly, monthly]
+  top_n:
+    type: integer
+    required: false
+    default: 5
+  benchmark:
+    type: string
+    required: false
+    default: QQQ
+  equal_weight:
+    type: boolean
+    required: false
+    default: true
+    description: true=等权分配，false=市值加权（排名越高权重越大，如 top_n=3 时 50%/33%/17%）
+  mock_mode:
+    type: boolean
+    required: false
+    default: false
+    description: true 时 ranking 与 bars 均使用 mock 数据，全链路 10 秒内完成；TICKET_20250314_BACKTEST_001_FOLLOWUP_007
+
+output:
+  type: object
+  properties:
+    success: { type: boolean }
+    report:
+      type: object
+      properties:
+        strategy_name: { type: string }
+        period: { type: object }
+        rebalances: { type: array }
+        equity_curve: { type: array }
+        metrics: { type: object }
+    errors: { type: array }

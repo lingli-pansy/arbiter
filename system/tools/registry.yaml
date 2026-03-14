@@ -7,6 +7,16 @@ tools:
     contract: contracts/get_market_bars_batch.yaml
     impl: impl/get_market_bars_batch.py
     description: 批量获取多标的市场行情数据（OHLCV）
+  get_market_cap_ranking:
+    status: active
+    contract: contracts/get_market_cap_ranking.yaml
+    impl: impl/get_market_cap_ranking.py
+    description: 获取指定日期的市值排名（美股市值 Top N）
+  run_market_cap_rotation_backtest:
+    status: active
+    contract: contracts/run_market_cap_rotation_backtest.yaml
+    impl: impl/run_market_cap_rotation_backtest.py
+    description: 市值 Top N 轮动策略回测（季度调仓、等权、基准对比）
   get_nt_bar_schema:
     status: active
     contract: contracts/get_nt_bar_schema.yaml

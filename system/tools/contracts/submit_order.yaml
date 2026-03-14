@@ -1,5 +1,5 @@
 # Contract for submit_order
-# TICKET_20250314_003; Source: TASK_0022 (Paper trading integration test)
+# TICKET_20250314_003; TICKET_NT_LIVE_EXECUTION_001 (live mode)
 
 name: submit_order
 description: 提交订单（市价/限价/止损）
@@ -36,6 +36,12 @@ input:
     type: number
     required: false
     description: 止损价（STP 时必填）
+  mode:
+    type: string
+    required: false
+    default: paper
+    enum: ["paper", "live"]
+    description: paper=本地模拟，live=真实 IB 提交；live 休市时返回 Market closed 错误
 
 output:
   type: object
@@ -44,6 +50,9 @@ output:
     error_message: { type: string }
     timestamp: { type: string, format: date-time }
     order_id: { type: string }
-    status: { type: string, enum: ["submitted", "rejected", "filled"] }
+    status: { type: string, enum: ["submitted", "rejected", "filled", "pending", "cancelled"] }
     filled_qty: { type: number }
     avg_fill_price: { type: number }
+    ib_order_id:
+      type: string
+      description: IB 返回的 permId（仅 live 模式）

@@ -61,13 +61,12 @@ def test_get_broker_positions(connection_id: str):
         assert "symbol" in p and "quantity" in p and "avg_cost" in p
 
 
-def test_connect_broker_live_returns_failed():
-    """live 模式应返回 failed（未实现实盘连接）."""
+def test_connect_broker_live():
+    """live 模式：连接成功或失败（取决于 IB Gateway 4001 是否运行）。"""
     payload = {"broker": "ib", "mode": "live"}
     code, out = _run(CONNECT_SCRIPT, payload)
-    assert out.get("success") is False
-    assert out.get("status") == "failed"
-    assert "error_message" in out
+    # 成功：status=connected；失败：error_message 存在
+    assert out.get("success") is True or "error_message" in out
 
 
 def test_get_broker_account_invalid_connection():

@@ -6,6 +6,7 @@ readme = "docs/README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "yfinance>=0.2.0",
+    "pandas>=2.0.0",
     "nautilus_trader>=1.200.0",
     "ib_insync>=0.9.86",
     "nest_asyncio>=1.6.0",

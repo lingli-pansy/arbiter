@@ -21,6 +21,7 @@ output:
     error_message: { type: string }
     timestamp: { type: string, format: date-time }
     order_id: { type: string }
+    ib_order_id: { type: string }
     status: { type: string, enum: ["pending", "partial", "filled", "cancelled", "rejected"] }
     filled_qty: { type: number }
     remaining_qty: { type: number }

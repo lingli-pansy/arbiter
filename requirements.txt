@@ -1,0 +1,4 @@
+# Arbiter 项目依赖（含工具实现）
+# 工具依赖详情见 system/tools/impl/requirements.txt
+# 安装: pip install -r requirements.txt 或 ./scripts/install_ib_deps.sh（使用 .venv）
+-r system/tools/impl/requirements.txt
